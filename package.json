@@ -21,6 +21,7 @@
         "build": "encore production --progress"
     },
     "dependencies": {
-        "daisyui": "^2.14.3"
+        "daisyui": "^2.14.3",
+        "inputmask": "^5.0.7"
     }
 }

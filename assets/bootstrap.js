@@ -7,5 +7,22 @@ export const app = startStimulusApp(require.context(
     /\.[jt]sx?$/
 ));
 
+import Inputmask from 'inputmask';
+
+Inputmask.extendAliases({
+    'currency': {
+        radixPoint: ',',
+        groupSeparator: '.',
+        allowMinus: false,
+        prefix: 'R$ ',
+        digits: 2,
+        digitsOptional: false,
+        rightAlign: true,
+        removeMaskOnSubmit: true
+    },
+});
+
+Inputmask('currency').mask('.inputmask-currency');
+
 // register any custom, 3rd party controllers here
 // app.register('some_controller_name', SomeImportedController);

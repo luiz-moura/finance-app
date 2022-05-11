@@ -2725,6 +2725,11 @@ inherits@2.0.3:
   resolved "https://registry.npmjs.org/inherits/-/inherits-2.0.3.tgz"
   integrity sha1-Yzwsg+PaQqUC9SRmAiSA9CCCYd4=
 
+inputmask@^5.0.7:
+  version "5.0.7"
+  resolved "https://registry.yarnpkg.com/inputmask/-/inputmask-5.0.7.tgz#b04d5d4e1c85018893c3c8edb1a9f074b051007f"
+  integrity sha512-rUxbRDS25KEib+c/Ow+K01oprU/+EK9t9SOPC8ov94/ftULGDqj1zOgRU/Hko6uzoKRMdwCfuhAafJ/Wk2wffQ==
+
 interpret@^2.2.0:
   version "2.2.0"
   resolved "https://registry.npmjs.org/interpret/-/interpret-2.2.0.tgz"
