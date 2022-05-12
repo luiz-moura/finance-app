@@ -18,7 +18,9 @@ Inputmask.extendAliases({
         digits: 2,
         digitsOptional: false,
         rightAlign: true,
-        removeMaskOnSubmit: true
+        unmaskAsNumber: true,
+        autoUnmask: true,
+        removeMaskOnSubmit: true,
     },
 });
 
