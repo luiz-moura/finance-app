@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Categories{% endblock %}
+
+{% block body %}
+
+  <h1 class="text-lg mb-4">Categories</h1>
+
+  <div class="text-sm breadcrumbs mb-4">
+    <ul>
+      <li><a href="{{ path('app_transaction.index') }}">Transactions</a></li>
+      <li>Categories</li>
+    </ul>
+  </div>
+
+  <a href="{{ path('app_category.create') }}" class="btn gap-2">
+    <span class="material-symbols-outlined">add</span>
+    Create category
+  </a>
+
+  {{ component('categories-table', {
+    'categories': categories
+  }) }}
+
+{% endblock %}

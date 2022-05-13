@@ -1,0 +1,37 @@
+<div class="overflow-x-auto w-full my-8">
+	<table class="table w-full">
+		<!-- head -->
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Background</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for category in categories %}
+        <tr>
+          <td>
+            {{ category.name }} <br>
+            <span class="badge badge-ghost badge-sm">{{ category.createdAt|format_datetime() }}</span>
+          </td>
+          <td><span class="badge badge-error gap-2" style="background: {{ category.background }}">{{ category.background }}</span></td>
+          <th class="text-right">
+            <a href="{{ path('app_category.edit', { id: category.id }) }}"><span class="material-symbols-outlined">edit_note</span></a>
+            <form action="{{ path('app_category.delete', { id: category.id }) }}" method="post" class="inline-flex">
+              <input type="hidden" name="_method" value="DELETE">
+              <button type="submit"><span class="material-symbols-outlined">delete_forever</span></button>
+            </form>
+          </th>
+        </tr>
+      {% endfor %}
+		</tbody>
+		<tfoot>
+			<tr>
+				<th>Name</th>
+				<th>Background</th>
+				<th></th>
+			</tr>
+		</tfoot>
+	</table>
+</div>

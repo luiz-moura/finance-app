@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Category edit{% endblock %}
+
+{% block body %}
+
+  <h1 class="text-lg mb-4">Category edit</h1>
+
+  <div class="text-sm breadcrumbs mb-4">
+    <ul>
+      <li><a href="{{ path('app_transaction.index') }}">Transactions</a></li>
+      <li><a href="{{ path('app_category.index') }}">Categories</a></li>
+      <li>Edit category</li>
+    </ul>
+  </div>
+
+  <form action="{{ path('app_category.update', { id: category.id }) }}" method="post">
+    <input type="hidden" name="_method" value="PUT">
+    {% include 'category/form.html.twig' %}
+  </form>
+
+{% endblock %}

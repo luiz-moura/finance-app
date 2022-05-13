@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Category create{% endblock %}
+
+{% block body %}
+
+  <h1 class="text-lg mb-4">Category create</h1>
+
+  <div class="text-sm breadcrumbs mb-4">
+    <ul>
+      <li><a href="{{ path('app_transaction.index') }}">Transactions</a></li>
+      <li><a href="{{ path('app_category.index') }}">Categories</a></li>
+      <li>Create category</li>
+    </ul>
+  </div>
+
+  <form action="{{ path('app_category.store') }}" method="post">
+    {% include 'category/form.html.twig' %}
+  </form>
+
+{% endblock %}
