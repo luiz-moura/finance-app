@@ -1,0 +1,59 @@
+<!-- Put this part before </body> tag -->
+<input type="checkbox" id="modal-transaction" class="modal-toggle"/>
+
+<label for="modal-transaction" class="modal cursor-pointer">
+  <label class="modal-box relative" for="modal-inner">
+		<h3 class="text-lg font-bold mb-4">Create transaction</h3>
+
+		<form action="{{ path('app_transaction.store') }}" method="post">
+      <input type="text"
+             name="title"
+             placeholder="Title"
+             class="input input-bordered w-full my-2"/>
+      <input type="text"
+             name="value"
+             placeholder="Amount"
+             class="input input-bordered w-full my-2 inputmask-currency"/>
+
+      <div class="divider my-1"></div>
+
+      <label class="label">Category</label>
+      <div class="form-control overflow-scroll max-h-30 pr-2">
+        {% for category in categories %}
+          <label class="cursor-pointer label">
+            <span class="label-text">{{ category.name }}</span>
+            <input type="checkbox" name="categories[]" value="{{ category.id }}" class="checkbox checkbox-accent"/>
+          </label>
+        {% endfor %}
+      </div>
+
+      <div class="divider my-1"></div>
+
+      <label class="label">Type</label>
+      <div class="form-control">
+        <label class="label cursor-pointer">
+          <span class="label-text">Withdraw</span>
+          <input type="radio"
+                 name="type"
+                 value="withdraw"
+                 class="radio checked:bg-red-500"
+                 checked/>
+        </label>
+      </div>
+      <div class="form-control">
+        <label class="label cursor-pointer">
+          <span class="label-text">Deposit</span>
+          <input type="radio"
+                 name="type"
+                 value="deposit"
+                 class="radio checked:bg-blue-500"/>
+        </label>
+      </div>
+
+      <div class="modal-action">
+        <button type="submit" for="modal-transaction" class="btn">Create</button>
+      </div>
+    </form>
+
+	</div>
+</div>

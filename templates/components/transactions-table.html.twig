@@ -1,0 +1,60 @@
+<div class="overflow-x-auto w-full my-8">
+	<table class="table w-full">
+		<!-- head -->
+		<thead>
+			<tr>
+				<th>Title</th>
+				<th>Amount</th>
+				<th>Categories</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for transaction in transactions %}
+        <tr>
+          <td>
+            {{ transaction.title }} <br>
+            <span class="badge badge-ghost badge-sm">{{ transaction.createdAt|format_datetime() }}</span>
+          </td>
+          <td class="{{ transaction.type == 'withdraw' ? 'withdraw' : 'deposit' }}">{{ transaction.value  }}</td>
+          <td>
+            {% for category in transaction.categories %}
+              <div class="badge gap-2 text-white" style="background: {{ category.background }}">
+                <form action="{{ path('app_transaction-category.delete', { transaction: transaction.id, category: category.id }) }}" method="post" class="inline-flex">
+                  <input type="hidden" name="_method" value="DELETE">
+                  <button type="submit"><span class="material-symbols-outlined text-lg">cancel</span></button>
+                </form>
+                {{ category.name }}
+              </div>
+            {% endfor %}
+          </td>
+          <th class="text-right">
+            <a href="{{ path('app_transaction.edit', { id: transaction.id }) }}"><span class="material-symbols-outlined">edit_note</span></a>
+            <form action="{{ path('app_transaction.delete', { id: transaction.id }) }}" method="post" class="inline-flex">
+              <input type="hidden" name="_method" value="DELETE">
+              <button type="submit"><span class="material-symbols-outlined">delete_forever</span></button>
+            </form>
+          </th>
+        </tr>
+      {% endfor %}
+		</tbody>
+		<tfoot>
+			<tr>
+				<th>Title</th>
+        <th>Amount</th>
+				<th>Categories</th>
+				<th></th>
+			</tr>
+		</tfoot>
+	</table>
+</div>
+
+<style>
+  .withdraw {
+    color: hsl(var(--af));
+  }
+
+  .deposit {
+    color: hsl(var(--su));
+  }
+</style>

@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Transactions{% endblock %}
+
+{% block body %}
+
+  {{ component('balance', { balance: balance }) }}
+
+  {{ component('transactions-table', { 'transactions': transactions }) }}
+
+  {{ component('transaction-modal', { 'categories': categories }) }}
+
+{% endblock %}

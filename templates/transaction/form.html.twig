@@ -1,0 +1,72 @@
+{% if errors is defined %}
+  <div class="alert alert-warning shadow-lg">
+    <div>
+      <span class="material-symbols-outlined stroke-info flex-shrink-0 w-6 h-6">error</span>
+      <div>
+        <h3 class="font-bold">Warnings!</h3>
+        <ul>
+          {% for error in errors %}
+            <li class="text-sm">{{ error.message }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<input type="text"
+       name="title"
+       placeholder="Title"
+       class="input input-bordered w-full my-2"
+       value="{{ transaction.title }}"/>
+<input type="text"
+       name="value"
+       placeholder="Amount"
+       value="{{ transaction.value }}"
+       class="input input-bordered w-full my-2 inputmask-currency"/>
+
+<div class="divider my-1"></div>
+
+<div class="form-control">
+  <label class="label">
+    <span class="label-text">Category</span>
+  </label>
+
+  {% for category in categories %}
+    <label class="cursor-pointer label">
+      <span class="label-text">{{ category.name }}</span>
+      <input type="checkbox" name="categories[]" value="{{ category.id }}" class="checkbox checkbox-accent"/>
+    </label>
+  {% endfor %}
+</div>
+
+<div class="divider my-1"></div>
+
+<div class="form-control">
+  <label class="label">
+    <span class="label-text">Type</span>
+  </label>
+  <label class="label cursor-pointer">
+    <span class="label-text">Withdraw</span>
+    <input type="radio"
+           name="type"
+           value="withdraw"
+           class="radio checked:bg-red-500"
+           checked/>
+  </label>
+</div>
+<div class="form-control">
+  <label class="label cursor-pointer">
+    <span class="label-text">Deposit</span>
+    <input type="radio"
+           name="type"
+           value="deposit"
+           class="radio checked:bg-blue-500"/>
+  </label>
+</div>
+
+<div class="modal-action">
+  <button type="submit" for="modal-transaction" class="btn">
+    {% if transaction is defined %} Update {% else %} Create {% endif %}
+  </button>
+</div>
