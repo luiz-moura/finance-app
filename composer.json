@@ -11,6 +11,7 @@
         "doctrine/doctrine-migrations-bundle": "^3.2",
         "doctrine/orm": "^2.12",
         "doctrine/persistence": "^2.2",
+        "nelmio/cors-bundle": "^2.2",
         "stof/doctrine-extensions-bundle": "^1.7",
         "symfony/asset": "6.0.*",
         "symfony/console": "6.0.*",
