@@ -40,6 +40,12 @@ class Transaction
     #[ORM\ManyToMany(targetEntity: Category::class, inversedBy: 'transactions')]
     private $categories;
 
+    #[ORM\PrePersist]
+    public function createdAt(): void
+    {
+        $this->createdAt = new DateTime();
+    }
+
     public function __construct()
     {
         $this->categories = new ArrayCollection();
@@ -86,15 +92,9 @@ class Transaction
         return $this;
     }
 
-    #[ORM\PrePersist]
-    public function createdAt(): void
+    public function getCreatedAt(): ?string
     {
-        $this->createdAt = new DateTime();
-    }
-
-    public function getCreatedAt(): ?DateTime
-    {
-        return $this->created;
+        return date_format($this->createdAt, 'Y-m-d H:i:s');
     }
 
     /**
@@ -119,5 +119,17 @@ class Transaction
         $this->categories->removeElement($category);
 
         return $this;
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'id'            => $this->getId(),
+            'title'         => $this->getTitle(),
+            'value'         => $this->getValue(),
+            'type'          => $this->getType(),
+            'created_at'    => $this->getCreatedAt(),
+            'categories'    => $this->getCategories()->map(fn ($cat) => $cat->toArray())->toArray(),
+        ];
     }
 }
