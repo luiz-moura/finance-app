@@ -1,5 +1,5 @@
 
-# Symfony Finance App
+# Finance App Symfony
 
 [![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/tterb/atomic-design-ui/blob/master/LICENSEs)
 [![PHP Version](https://img.shields.io/packagist/php-v/symfony/symfony?)](https://github.com/symfony/symfony)
@@ -10,6 +10,7 @@ A simple financial transaction crud
 
 ## Technologies
 
+ - [Symfony](https://symfony.com)
  - [Symfony Encore](https://symfony.com/doc/current/frontend/encore/installation.html)
  - [Symfony MakerBundle](https://symfony.com/bundles/SymfonyMakerBundle/current/index.html)
  - [Symfony Asset](https://symfony.com/doc/current/components/asset.html)
@@ -31,13 +32,13 @@ A simple financial transaction crud
 Clone the project
 
 ```bash
-  git clone https://github.com/luiz-moura/symfony-finance-app.git
+  git clone https://github.com/luiz-moura/finance-app-symfony.git
 ```
 
 Go to the project directory
 
 ```bash
-  cd symfony-finance-app
+  cd finance-app-symfony
 ```
 
 Install dependencies PHP
