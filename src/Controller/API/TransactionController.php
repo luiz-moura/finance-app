@@ -46,7 +46,7 @@ class TransactionController extends AbstractController
         $transaction->setValue(tofloat($parameters['value']));
         $transaction->setType($parameters['type']);
 
-        if (isset($parameters['categories'])) {
+        if (isset($parameters['categories']) && count($parameters['categories']) > 0) {
             $categories = $categoryRepository->findBy(['id' => $parameters['categories']]);
             array_map(fn ($category) => $category->addTransaction($transaction), $categories);
         }
@@ -88,9 +88,18 @@ class TransactionController extends AbstractController
         $transaction->setValue(tofloat($parameters['value']));
         $transaction->setType($parameters['type']);
 
-        if (isset($parameters['categories'])) {
-            $categories = $categoryRepository->findBy(['id' => $parameters['categories']]);
-            array_map(fn ($category) => $category->addTransaction($transaction), $categories);
+        if (isset($parameters['categories']) && count($parameters['categories']) > 0) {
+            $myCats = $transaction->getCategories()->map(fn ($cat) => $cat->getId())->toArray();
+            $catsRemoved = array_diff($myCats, $parameters['categories']);
+
+            $categoriesAdd = $categoryRepository->findBy(['id' => $parameters['categories']]);
+            $catsRemoved = $transaction->getCategories()->filter(fn ($cat) => in_array($cat->getId(), $catsRemoved))->toArray();
+
+            array_map(fn ($cat) => $cat->addTransaction($transaction), $categoriesAdd);
+            array_map(fn ($cat) => $cat->removeTransaction($transaction), $catsRemoved);
+        } else {
+            // Remove all categories
+            array_map(fn ($cat) => $cat->removeTransaction($transaction), $transaction->getCategories()->toArray());
         }
 
         $errors = $validator->validate($transaction);
