@@ -11,7 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class TransactionCategoryController extends AbstractController
 {
-    #[Route('api/transaction/{transaction}/category/{category}', name: 'app_transaction-category.delete', methods: ['DELETE'])]
+    #[Route('api/transaction/{transaction}/category/{category}', name: 'app_transaction-category_api.delete', methods: ['DELETE'])]
     public function delete(
         int $transaction,
         int $category,

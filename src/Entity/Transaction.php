@@ -130,6 +130,7 @@ class Transaction
             'type'          => $this->getType(),
             'created_at'    => $this->getCreatedAt(),
             'categories'    => $this->getCategories()->map(fn ($cat) => $cat->toArray())->toArray(),
+            'catkeys'       => $this->getCategories()->map(fn ($cat) => $cat->getId())->toArray(),
         ];
     }
 }

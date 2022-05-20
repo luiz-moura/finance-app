@@ -43,11 +43,13 @@ class TransactionController extends AbstractController
 
         $transaction = new Transaction();
         $transaction->setTitle($parameters['title']);
-        $transaction->setValue($parameters['value']);
+        $transaction->setValue(tofloat($parameters['value']));
         $transaction->setType($parameters['type']);
 
-        $categories = $categoryRepository->findBy(['id' => $parameters['categories']]);
-        array_map(fn ($category) => $category->addTransaction($transaction), $categories);
+        if (isset($parameters['categories'])) {
+            $categories = $categoryRepository->findBy(['id' => $parameters['categories']]);
+            array_map(fn ($category) => $category->addTransaction($transaction), $categories);
+        }
 
         $errors = $validator->validate($transaction);
 
@@ -83,11 +85,13 @@ class TransactionController extends AbstractController
         $parameters = json_decode($request->getContent(), true);
 
         $transaction->setTitle($parameters['title']);
-        $transaction->setValue($parameters['value']);
+        $transaction->setValue(tofloat($parameters['value']));
         $transaction->setType($parameters['type']);
 
-        $categories = $categoryRepository->findBy(['id' => $parameters['categories']]);
-        array_map(fn ($category) => $category->addTransaction($transaction), $categories);
+        if (isset($parameters['categories'])) {
+            $categories = $categoryRepository->findBy(['id' => $parameters['categories']]);
+            array_map(fn ($category) => $category->addTransaction($transaction), $categories);
+        }
 
         $errors = $validator->validate($transaction);
 
