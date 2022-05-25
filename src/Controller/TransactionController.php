@@ -14,31 +14,33 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class TransactionController extends AbstractController
 {
+    public function __construct(
+        private TransactionRepository $transactionRepository,
+        private CategoryRepository $categoryRepository
+    ) {}
+
     #[Route('/', name: 'app_transaction.index', methods: ['GET'])]
-    public function index(TransactionRepository $transactionRepository, CategoryRepository $categoryRepository): Response
+    public function index(): Response
     {
-        $transactions = $transactionRepository->findAll();
-        $balance = $transactionRepository->balance();
-        $categories = $categoryRepository->findAll();
+        $transactions = $this->transactionRepository->findAll();
+        $balance = $this->transactionRepository->balance();
+        $categories = $this->categoryRepository->findAll();
 
         return $this->render('transaction/index.html.twig', compact('transactions', 'categories', 'balance'));
     }
 
     #[Route('/transaction', name: 'app_transaction.store', methods: ['POST'])]
-    public function store(
-        Request $request,
-        EntityManagerInterface $em,
-        CategoryRepository $categoryRepository,
-        ValidatorInterface $validator
-    ): Response
+    public function store(Request $request, EntityManagerInterface $em, ValidatorInterface $validator): Response
     {
         $transaction = new Transaction();
         $transaction->setTitle($request->get('title'));
         $transaction->setValue($request->get('value'));
         $transaction->setType($request->get('type'));
 
-        $categories = $categoryRepository->findBy(['id' => $request->get('categories')]);
-        array_map(fn ($category) => $category->addTransaction($transaction), $categories);
+        if (!empty($request->get('categories'))) {
+            $categories = $this->categoryRepository->findBy(['id' => $request->get('categories')]);
+            array_map(fn ($category) => $category->addTransaction($transaction), $categories);
+        }
 
         $errors = $validator->validate($transaction);
 
@@ -54,10 +56,10 @@ class TransactionController extends AbstractController
     }
 
     #[Route('transaction/{id}', name: 'app_transaction.edit', methods: ['GET'])]
-    public function edit(int $id, TransactionRepository $transactionRepository, CategoryRepository $categoryRepository): Response
+    public function edit(int $id): Response
     {
-        $transaction = $transactionRepository->find($id);
-        $categories = $categoryRepository->findAll();
+        $transaction = $this->transactionRepository->find($id);
+        $categories = $this->categoryRepository->findAll();
 
         if (!$transaction) {
             throw $this->createNotFoundException('No transaction found for id ' . $id);
@@ -67,16 +69,9 @@ class TransactionController extends AbstractController
     }
 
     #[Route('/transaction/{id}', name: 'app_transaction.update', methods: ['PUT'])]
-    public function update(
-        Request $request,
-        int $id,
-        TransactionRepository $transactionRepository,
-        CategoryRepository $categoryRepository,
-        EntityManagerInterface $em,
-        ValidatorInterface $validator
-    ): Response
+    public function update(Request $request, int $id, EntityManagerInterface $em, ValidatorInterface $validator): Response
     {
-        $transaction = $transactionRepository->find($id);
+        $transaction = $this->transactionRepository->find($id);
 
         if (!$transaction) {
             throw $this->createNotFoundException('No transaction found for id ' . $id);
@@ -86,8 +81,19 @@ class TransactionController extends AbstractController
         $transaction->setValue($request->get('value'));
         $transaction->setType($request->get('type'));
 
-        $categories = $categoryRepository->findBy(['id' => $request->get('categories')]);
-        array_map(fn ($category) => $category->addTransaction($transaction), $categories);
+        if (!empty($request->get('categories'))) {
+            $myCats = $transaction->getCategories()->map(fn ($cat) => $cat->getId())->toArray();
+            $catsRemoved = array_diff($myCats, $request->get('categories'));
+
+            $categoriesAdd = $this->categoryRepository->findBy(['id' => $request->get('categories')]);
+            $catsRemoved = $transaction->getCategories()->filter(fn ($cat) => in_array($cat->getId(), $catsRemoved))->toArray();
+
+            array_map(fn ($cat) => $cat->addTransaction($transaction), $categoriesAdd);
+            array_map(fn ($cat) => $cat->removeTransaction($transaction), $catsRemoved);
+        } else {
+            // Remove all categories
+            array_map(fn ($cat) => $cat->removeTransaction($transaction), $transaction->getCategories()->toArray());
+        }
 
         $errors = $validator->validate($transaction);
 
@@ -102,9 +108,9 @@ class TransactionController extends AbstractController
     }
 
     #[Route('/transaction/{id}', name: 'app_transaction.delete', methods: ['DELETE'])]
-    public function delete(int $id, EntityManagerInterface $em, TransactionRepository $transactionRepository): Response
+    public function delete(int $id, EntityManagerInterface $em): Response
     {
-        $transaction = $transactionRepository->find($id);
+        $transaction = $this->transactionRepository->find($id);
 
         if (!$transaction) {
             throw $this->createNotFoundException('No transaction found for id ' . $id);

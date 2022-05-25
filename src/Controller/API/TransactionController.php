@@ -15,19 +15,21 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class TransactionController extends AbstractController
 {
+    public function __construct(private TransactionRepository $transactionRepository) {}
+
     #[Route('api/transaction', name: 'app_transaction_api.index', methods: ['GET'])]
-    public function index(TransactionRepository $transactionRepository): Response
+    public function index(): Response
     {
-        $transactions = new ArrayCollection($transactionRepository->findAll());
+        $transactions = new ArrayCollection($this->transactionRepository->findAll());
         $transactions = $transactions->map(fn ($transaction) => $transaction->toArray())->toArray();
 
         return $this->json($transactions);
     }
 
     #[Route('api/transaction/{id}', name: 'app_transaction_api.show', methods: ['GET'])]
-    public function show(int $id, TransactionRepository $transactionRepository): Response
+    public function show(int $id): Response
     {
-        $transaction = $transactionRepository->find($id);
+        $transaction = $this->transactionRepository->find($id);
         return $this->json($transaction->toArray());
     }
 
@@ -70,13 +72,12 @@ class TransactionController extends AbstractController
     public function update(
         Request $request,
         int $id,
-        TransactionRepository $transactionRepository,
         CategoryRepository $categoryRepository,
         EntityManagerInterface $em,
         ValidatorInterface $validator
     ): Response
     {
-        $transaction = $transactionRepository->find($id);
+        $transaction = $this->transactionRepository->find($id);
 
         if (!$transaction) {
             return $this->json(['error' => 'No transaction found for id ' . $id], 404);
@@ -117,9 +118,9 @@ class TransactionController extends AbstractController
     }
 
     #[Route('api/transaction/{id}', name: 'app_transaction_api.delete', methods: ['DELETE'])]
-    public function delete(int $id, EntityManagerInterface $em, TransactionRepository $transactionRepository): Response
+    public function delete(int $id, EntityManagerInterface $em): Response
     {
-        $transaction = $transactionRepository->find($id);
+        $transaction = $this->transactionRepository->find($id);
 
         if (!$transaction) {
             return $this->json(['error' => 'No transaction found for id ' . $id], 404);

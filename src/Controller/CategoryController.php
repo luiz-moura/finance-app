@@ -13,10 +13,12 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class CategoryController extends AbstractController
 {
+    public function __construct(private CategoryRepository $categoryRepository) {}
+
     #[Route('/category', name: 'app_category.index', methods: ['GET'])]
-    public function index(CategoryRepository $categoryRepository): Response
+    public function index(): Response
     {
-        $categories = $categoryRepository->findAll();
+        $categories = $this->categoryRepository->findAll();
 
         return $this->render('category/index.html.twig', compact('categories'));
     }
@@ -48,9 +50,9 @@ class CategoryController extends AbstractController
     }
 
     #[Route('category/{id}', name: 'app_category.edit', methods: ['GET'])]
-    public function edit(int $id, CategoryRepository $categoryRepository): Response
+    public function edit(int $id): Response
     {
-        $category = $categoryRepository->find($id);
+        $category = $this->categoryRepository->find($id);
 
         if (!$category) {
             throw $this->createNotFoundException('No category found for id ' . $id);
@@ -60,15 +62,9 @@ class CategoryController extends AbstractController
     }
 
     #[Route('/category/{id}', name: 'app_category.update', methods: ['PUT'])]
-    public function update(
-        Request $request,
-        int $id,
-        CategoryRepository $categoryRepository,
-        EntityManagerInterface $em,
-        ValidatorInterface $validator
-    ): Response
+    public function update(Request $request, int $id, EntityManagerInterface $em, ValidatorInterface $validator): Response
     {
-        $category = $categoryRepository->find($id);
+        $category = $this->categoryRepository->find($id);
 
         if (!$category) {
             throw $this->createNotFoundException('No category found for id ' . $id);
@@ -90,9 +86,9 @@ class CategoryController extends AbstractController
     }
 
     #[Route('/category/{id}', name: 'app_category.delete', methods: ['DELETE'])]
-    public function delete(int $id, EntityManagerInterface $em, CategoryRepository $categoryRepository): Response
+    public function delete(int $id, EntityManagerInterface $em): Response
     {
-        $category = $categoryRepository->find($id);
+        $category = $this->categoryRepository->find($id);
 
         if (!$category) {
             throw $this->createNotFoundException('No category found for id ' . $id);

@@ -14,10 +14,12 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class CategoryController extends AbstractController
 {
+    public function __construct(private CategoryRepository $categoryRepository) {}
+
     #[Route('api/category', name: 'app_category_api.index', methods: ['GET'])]
-    public function index(CategoryRepository $categoryRepository): Response
+    public function index(): Response
     {
-        $categories = $categoryRepository->findAll();
+        $categories = $this->categoryRepository->findAll();
         $categoriesArray = (new ArrayCollection($categories))
             ->map(fn ($category) => $category->toArray())->toArray();
 
@@ -25,9 +27,9 @@ class CategoryController extends AbstractController
     }
 
     #[Route('api/category/{id}', name: 'app_category_api.show', methods: ['GET'])]
-    public function show(int $id, CategoryRepository $categoryRepository): Response
+    public function show(int $id): Response
     {
-        $category = $categoryRepository->find($id);
+        $category = $this->categoryRepository->find($id);
         return $this->json($category->toArray());
     }
 
@@ -56,15 +58,9 @@ class CategoryController extends AbstractController
     }
 
     #[Route('api/category/{id}', name: 'app_category_api.update', methods: ['PUT'])]
-    public function update(
-        Request $request,
-        int $id,
-        CategoryRepository $categoryRepository,
-        EntityManagerInterface $em,
-        ValidatorInterface $validator
-    ): Response
+    public function update(Request $request, int $id, EntityManagerInterface $em, ValidatorInterface $validator): Response
     {
-        $category = $categoryRepository->find($id);
+        $category = $this->categoryRepository->find($id);
 
         if (!$category) {
             return $this->json(['error' => 'No category found for id ' . $id, 404]);
@@ -90,9 +86,9 @@ class CategoryController extends AbstractController
     }
 
     #[Route('api/category/{id}', name: 'app_category_api.delete', methods: ['DELETE'])]
-    public function delete(int $id, EntityManagerInterface $em, CategoryRepository $categoryRepository): Response
+    public function delete(int $id, EntityManagerInterface $em): Response
     {
-        $category = $categoryRepository->find($id);
+        $category = $this->categoryRepository->find($id);
 
         if (!$category) {
             return $this->json(['error' => 'No category found for id ' . $id, 404]);

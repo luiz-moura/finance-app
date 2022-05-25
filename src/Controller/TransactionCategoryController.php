@@ -11,17 +11,16 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class TransactionCategoryController extends AbstractController
 {
+    public function __construct(
+        private TransactionRepository $transactionRepository,
+        private CategoryRepository $categoryRepository
+    ) {}
+
     #[Route('/transaction/{transaction}/category/{category}', name: 'app_transaction-category.delete', methods: ['DELETE'])]
-    public function delete(
-        int $transaction,
-        int $category,
-        TransactionRepository $transactionRepository,
-        CategoryRepository $categoryRepository,
-        EntityManagerInterface $em
-    ): Response
+    public function delete(int $transaction, int $category, EntityManagerInterface $em): Response
     {
-        $transaction = $transactionRepository->find($transaction);
-        $category = $categoryRepository->find($category);
+        $transaction = $this->transactionRepository->find($transaction);
+        $category = $this->categoryRepository->find($category);
 
         if (!$category || !$transaction) {
             throw $this->createNotFoundException('No category found');
