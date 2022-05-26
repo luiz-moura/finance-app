@@ -34,6 +34,9 @@ class Category
     #[ORM\ManyToMany(targetEntity: Transaction::class, mappedBy: 'categories')]
     private $transactions;
 
+    #[ORM\OneToMany(mappedBy: 'Category', targetEntity: Budget::class, orphanRemoval: true)]
+    private $budgets;
+
     #[ORM\PrePersist]
     public function createdAt(): void
     {
@@ -43,6 +46,7 @@ class Category
     public function __construct()
     {
         $this->transactions = new ArrayCollection();
+        $this->budgets = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -101,6 +105,36 @@ class Category
     {
         if ($this->transactions->removeElement($transaction)) {
             $transaction->removeCategory($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Budget>
+     */
+    public function getBudgets(): Collection
+    {
+        return $this->budgets;
+    }
+
+    public function addBudget(Budget $budget): self
+    {
+        if (!$this->budgets->contains($budget)) {
+            $this->budgets[] = $budget;
+            $budget->setCategory($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBudget(Budget $budget): self
+    {
+        if ($this->budgets->removeElement($budget)) {
+            // set the owning side to null (unless already changed)
+            if ($budget->getCategory() === $this) {
+                $budget->setCategory(null);
+            }
         }
 
         return $this;
