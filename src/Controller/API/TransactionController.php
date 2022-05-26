@@ -3,9 +3,11 @@
 namespace App\Controller\API;
 
 use App\Entity\Transaction;
+use App\Service\FileUploader;
 use App\Repository\CategoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\TransactionRepository;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -38,19 +40,28 @@ class TransactionController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
         CategoryRepository $categoryRepository,
+        FileUploader $fileUploader,
         ValidatorInterface $validator
     ): Response
     {
-        $parameters = json_decode($request->getContent(), true);
+        $parameters = $request->request->all() ?? $request->toArray();
 
         $transaction = new Transaction();
         $transaction->setTitle($parameters['title']);
         $transaction->setValue(tofloat($parameters['value']));
         $transaction->setType($parameters['type']);
 
-        if (isset($parameters['categories']) && count($parameters['categories']) > 0) {
+        if (isset($parameters['categories']) && is_array($parameters['categories'])) {
             $categories = $categoryRepository->findBy(['id' => $parameters['categories']]);
             array_map(fn ($category) => $category->addTransaction($transaction), $categories);
+        }
+
+        if ($request->files->get('image')) {
+            $filesystem = new Filesystem();
+            $filesystem->remove($transaction->getImageDir());
+
+            $fileName = $fileUploader->upload($request->files->get('image'));
+            $transaction->setImage($fileName);
         }
 
         $errors = $validator->validate($transaction);
@@ -73,6 +84,7 @@ class TransactionController extends AbstractController
         Request $request,
         int $id,
         CategoryRepository $categoryRepository,
+        FileUploader $fileUploader,
         EntityManagerInterface $em,
         ValidatorInterface $validator
     ): Response
@@ -83,13 +95,13 @@ class TransactionController extends AbstractController
             return $this->json(['error' => 'No transaction found for id ' . $id], 404);
         }
 
-        $parameters = json_decode($request->getContent(), true);
+        $parameters = $request->request->all() ?? $request->toArray();
 
         $transaction->setTitle($parameters['title']);
         $transaction->setValue(tofloat($parameters['value']));
         $transaction->setType($parameters['type']);
 
-        if (isset($parameters['categories']) && count($parameters['categories']) > 0) {
+        if (isset($parameters['categories']) && is_array($parameters['categories'])) {
             $myCats = $transaction->getCategories()->map(fn ($cat) => $cat->getId())->toArray();
             $catsRemoved = array_diff($myCats, $parameters['categories']);
 
@@ -101,6 +113,11 @@ class TransactionController extends AbstractController
         } else {
             // Remove all categories
             array_map(fn ($cat) => $cat->removeTransaction($transaction), $transaction->getCategories()->toArray());
+        }
+
+        if ($request->files->get('image')) {
+            $fileName = $fileUploader->upload($request->files->get('image'));
+            $transaction->setImage($fileName);
         }
 
         $errors = $validator->validate($transaction);
@@ -124,6 +141,11 @@ class TransactionController extends AbstractController
 
         if (!$transaction) {
             return $this->json(['error' => 'No transaction found for id ' . $id], 404);
+        }
+
+        if ($transaction->getImage()) {
+            $filesystem = new Filesystem();
+            $filesystem->remove($transaction->getImageDir());
         }
 
         $em->remove($transaction);

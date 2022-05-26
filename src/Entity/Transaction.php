@@ -8,6 +8,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Asset\Package;
+use Symfony\Component\Asset\VersionStrategy\EmptyVersionStrategy;
 
 #[ORM\Entity(repositoryClass: TransactionRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -39,6 +41,9 @@ class Transaction
 
     #[ORM\ManyToMany(targetEntity: Category::class, inversedBy: 'transactions')]
     private $categories;
+
+    #[ORM\Column(type: 'string', length: 1000, nullable: true)]
+    private $image;
 
     #[ORM\PrePersist]
     public function createdAt(): void
@@ -128,9 +133,29 @@ class Transaction
             'title'         => $this->getTitle(),
             'value'         => $this->getValue(),
             'type'          => $this->getType(),
+            'image'         => $this->getImage(),
+            'image_url'     => $this->getImageDir(),
             'created_at'    => $this->getCreatedAt(),
             'categories'    => $this->getCategories()->map(fn ($cat) => $cat->toArray())->toArray(),
             'catkeys'       => $this->getCategories()->map(fn ($cat) => $cat->getId())->toArray(),
         ];
+    }
+
+    public function getImageDir(): ?string
+    {
+        $package = new Package(new EmptyVersionStrategy());
+        return $package->getUrl("uploads/{$this->getImage()}");
+    }
+
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): self
+    {
+        $this->image = $image;
+
+        return $this;
     }
 }
