@@ -79,7 +79,7 @@ class TransactionController extends AbstractController
         ]);
     }
 
-    #[Route('api/transaction/{id}', name: 'app_transaction_api.update', methods: ['PUT'])]
+    #[Route('api/transaction/{id}', name: 'app_transaction_api.update', methods: ['PUT', 'POST'])]
     public function update(
         Request $request,
         int $id,
