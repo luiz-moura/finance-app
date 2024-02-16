@@ -1,7 +1,5 @@
 
 # Finance App Symfony
-
-[![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/tterb/atomic-design-ui/blob/master/LICENSEs)
 [![PHP Version](https://img.shields.io/packagist/php-v/symfony/symfony?)](https://github.com/symfony/symfony)
 
 A simple financial transaction crud
@@ -9,7 +7,6 @@ A simple financial transaction crud
 ![symfony](https://user-images.githubusercontent.com/57726726/168887452-c54118e2-e3c9-42ef-be5e-19ef3faa45f8.gif)
 
 ## Technologies
-
  - [Symfony](https://symfony.com)
  - [Symfony Encore](https://symfony.com/doc/current/frontend/encore/installation.html)
  - [Symfony MakerBundle](https://symfony.com/bundles/SymfonyMakerBundle/current/index.html)
@@ -22,49 +19,61 @@ A simple financial transaction crud
  - [Inputmask](https://www.npmjs.com/package//inputmask)
  - [Tailwindcss](https://tailwindcss.com)
  - [daisyUI](https://daisyui.com)
-## Authors
 
+## Author
 - [@luizmoura](https://www.github.com/luiz-moura)
 
 
 ## Run Locally
 
-Clone the project
-
+### Clone the project
 ```bash
   git clone https://github.com/luiz-moura/finance-app-symfony.git
 ```
 
-Go to the project directory
-
+### Go to the project directory
 ```bash
   cd finance-app-symfony
 ```
 
-Install dependencies PHP
-
+### Install dependencies PHP
 ```bash
   composer install
 ```
 
-Install dependencies JS
-
+### Install dependencies JS
 ```bash
   yarn install && yarn dev
 ```
 
-Start the docker compose
-
+### Start the docker compose
 ```bash
-  sudo docker compose up
+  docker-compose up
 ```
 
-Start the server
+### Run migrations
+```bash
+  php bin/console doctrine:migrations:migrate
+```
 
+### Start the server
 ```bash
   symfony server:start
 ```
 
+## Helpful commands
+
+### Access database in container
+```bash
+  docker-compose exec database bash
+  su postgres
+  psql -U symfony app
+```
+
+### Compile changes to template classes
+```bash
+npm run dev
+``````
 
 ## Environment Variables
 
