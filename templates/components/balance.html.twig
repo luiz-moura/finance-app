@@ -1,11 +1,13 @@
-<div class="stats bg-primary text-primary-content">
+<div class="stats text-primary-content {{ balance < 0 ? 'bg-error' : 'bg-primary' }}">
 	<div class="stat">
 		<div class="stat-title">Account balance</div>
 		<div class="stat-value">R$ {{ balance }}</div>
-		<div class="stat-actions">
-      <label for="modal-transaction" class="btn btn-sm modal-button">
-        <span class="material-symbols-outlined">swap_vert</span>
-      </label>
-		</div>
 	</div>
+</div>
+
+<div class="mt-5">
+  <label for="modal-transaction" class="btn gap-2 modal-button">
+    <span class="material-symbols-outlined">add</span>
+    Create transaction
+  </a>
 </div>
