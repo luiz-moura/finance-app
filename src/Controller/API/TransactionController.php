@@ -3,7 +3,7 @@
 namespace App\Controller\API;
 
 use App\Entity\Transaction;
-use App\Service\FileUploader;
+use App\Services\FileUploader;
 use App\Repository\CategoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\TransactionRepository;
@@ -17,7 +17,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class TransactionController extends AbstractController
 {
-    public function __construct(private TransactionRepository $transactionRepository) {}
+    public function __construct(private TransactionRepository $transactionRepository)
+    {
+    }
 
     #[Route('api/transaction', name: 'app_transaction_api.index', methods: ['GET'])]
     public function index(): Response
@@ -42,8 +44,7 @@ class TransactionController extends AbstractController
         CategoryRepository $categoryRepository,
         FileUploader $fileUploader,
         ValidatorInterface $validator
-    ): Response
-    {
+    ): Response {
         $parameters = $request->request->all() ?? $request->toArray();
 
         $transaction = new Transaction();
@@ -87,8 +88,7 @@ class TransactionController extends AbstractController
         FileUploader $fileUploader,
         EntityManagerInterface $em,
         ValidatorInterface $validator
-    ): Response
-    {
+    ): Response {
         $transaction = $this->transactionRepository->find($id);
 
         if (!$transaction) {

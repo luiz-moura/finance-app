@@ -20,8 +20,9 @@ class CategoryController extends AbstractController
     public function index(): Response
     {
         $categories = $this->categoryRepository->findAll();
-        $categoriesArray = (new ArrayCollection($categories))
-            ->map(fn ($category) => $category->toArray())->toArray();
+        $categoriesArray = (new ArrayCollection($categories))->map(
+            fn ($category) => $category->toArray()
+        )->toArray();
 
         return $this->json($categoriesArray);
     }
@@ -30,6 +31,7 @@ class CategoryController extends AbstractController
     public function show(int $id): Response
     {
         $category = $this->categoryRepository->find($id);
+
         return $this->json($category->toArray());
     }
 

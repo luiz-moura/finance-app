@@ -46,6 +46,7 @@ class CategoryController extends AbstractController
         $em->flush();
 
         $this->addFlash('success', 'Category saved with success');
+
         return $this->redirectToRoute('app_category.index');
     }
 
@@ -82,6 +83,7 @@ class CategoryController extends AbstractController
         $em->flush();
 
         $this->addFlash('success', 'Category updated with success');
+
         return $this->redirectToRoute('app_category.index');
     }
 
@@ -98,6 +100,7 @@ class CategoryController extends AbstractController
         $em->flush();
 
         $this->addFlash('success', 'Category deleted with success');
+
         return $this->redirectToRoute('app_category.index');
     }
 }

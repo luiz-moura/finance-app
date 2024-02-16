@@ -21,8 +21,9 @@ class BudgetController extends AbstractController
     public function index(): Response
     {
         $budgets = $this->budgetRepository->findAll();
-        $budgetsArray = (new ArrayCollection($budgets))
-            ->map(fn ($budget) => $budget->toArray())->toArray();
+        $budgetsArray = (new ArrayCollection($budgets))->map(
+            fn ($budget) => $budget->toArray()
+        )->toArray();
 
         return $this->json($budgetsArray);
     }
@@ -31,6 +32,7 @@ class BudgetController extends AbstractController
     public function show(int $id): Response
     {
         $budget = $this->budgetRepository->find($id);
+
         return $this->json($budget->toArray());
     }
 

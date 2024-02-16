@@ -4,8 +4,8 @@ namespace App\Controller;
 
 use App\Entity\Budget;
 use App\Repository\BudgetRepository;
+use App\Repository\CategoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Entity\Repository\CategoryRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;

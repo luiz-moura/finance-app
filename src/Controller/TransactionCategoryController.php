@@ -31,6 +31,7 @@ class TransactionCategoryController extends AbstractController
         $em->flush();
 
         $this->addFlash('success', "Category {$category->getName()} removed");
+
         return $this->redirectToRoute('app_transaction.index');
     }
 }

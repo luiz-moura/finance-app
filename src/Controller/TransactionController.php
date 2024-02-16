@@ -52,6 +52,7 @@ class TransactionController extends AbstractController
         $em->flush();
 
         $this->addFlash('success', 'Transaction saved with success');
+
         return $this->redirectToRoute('app_transaction.index');
     }
 
@@ -104,6 +105,7 @@ class TransactionController extends AbstractController
         $em->flush();
 
         $this->addFlash('success', 'Transaction updated with success');
+
         return $this->redirectToRoute('app_transaction.index');
     }
 
@@ -120,6 +122,7 @@ class TransactionController extends AbstractController
         $em->flush();
 
         $this->addFlash('success', 'Transaction deleted with success');
+
         return $this->redirectToRoute('app_transaction.index');
     }
 }
