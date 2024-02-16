@@ -1,4 +1,5 @@
 <?php
+
 function tofloat($num) {
     $dotPos = strrpos($num, '.');
     $commaPos = strrpos($num, ',');
