@@ -1,4 +1,3 @@
-
 # Finance App Symfony
 [![PHP Version](https://img.shields.io/packagist/php-v/symfony/symfony?)](https://github.com/symfony/symfony)
 
@@ -20,55 +19,42 @@ A simple financial transaction crud
  - [Tailwindcss](https://tailwindcss.com)
  - [daisyUI](https://daisyui.com)
 
-## Author
-- [@luizmoura](https://www.github.com/luiz-moura)
-
-
 ## Run Locally
 
-### Clone the project
+1. Clone the project
 ```bash
   git clone https://github.com/luiz-moura/finance-app-symfony.git
 ```
 
-### Go to the project directory
+2. Go to the project directory
 ```bash
   cd finance-app-symfony
 ```
 
-### Install dependencies PHP
+3. Start the server in background
 ```bash
-  composer install
+  docker-compose up -d
 ```
 
-### Install dependencies JS
+4. Install composer dependencies
 ```bash
-  yarn install && yarn dev
+  docker-compose run composer install
 ```
 
-### Start the docker compose
+5. Install NPM dependencies
 ```bash
-  docker-compose up
+  docker-compose run nodejs yarn install
+  docker-compose run nodejs yarn dev
 ```
 
-### Run migrations
+6. Create tables and fill populate with fictitious data
 ```bash
-  php bin/console doctrine:migrations:migrate
+  docker-compose run php bin/console doctrine:migrations:migrate
 ```
 
-### Start the server
-```bash
-  symfony server:start
-```
+http://localhost:8080/
 
 ## Helpful commands
-
-### Access database in container
-```bash
-  docker-compose exec database bash
-  su postgres
-  psql -U symfony app
-```
 
 ### Compile changes to template classes
 ```bash
@@ -80,3 +66,7 @@ npm run dev
 To run this project, you will need to add the following environment variables to your .env file
 
 `DATABASE_URL`
+
+## Author
+
+- [@luizmoura](https://www.github.com/luiz-moura)
