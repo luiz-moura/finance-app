@@ -1,6 +1,6 @@
-<div class="stats text-primary-content {{ balance < 0 ? 'bg-error' : 'bg-primary' }}">
+<div class="stats text-primary-content {{ balance < 0 ? 'bg-accent' : 'bg-secondary' }}">
 	<div class="stat">
-		<div class="stat-title">Account balance</div>
+		<div class="stat-title mb-3 font-bold">{{ 'Account balance'|upper }}</div>
 		<div class="stat-value">R$ {{ balance }}</div>
 	</div>
 </div>
