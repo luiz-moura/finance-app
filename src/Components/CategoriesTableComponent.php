@@ -7,5 +7,5 @@ use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 #[AsTwigComponent('categories-table')]
 class CategoriesTableComponent
 {
-    public $categories;
+    public array $categories;
 }

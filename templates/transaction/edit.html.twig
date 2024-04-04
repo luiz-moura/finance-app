@@ -4,14 +4,12 @@
 
 {% block body %}
 
-  <h1 class="text-lg mb-4">Transaction edit</h1>
+  <h1 class="text-3xl mb-4">Transaction edit</h1>
 
-  <div class="text-sm breadcrumbs mb-4">
-    <ul>
-      <li><a href="{{ path('app_transaction.index') }}">Transactions</a></li>
-      <li>Edit transaction</li>
-    </ul>
-  </div>
+  {{ component('breadcrumbs', { 'items': [
+    { 'name': 'Transaction', 'path': 'app_transaction.index' },
+    { 'name': 'Edit transaction' }
+  ] }) }}
 
   <form action="{{ path('app_transaction.update', { id: transaction.id }) }}" method="post">
     <input type="hidden" name="_method" value="PUT">

@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Budget create{% endblock %}
+
+{% block body %}
+
+  <h1 class="text-3xl mb-4">Budget create</h1>
+
+  {{ component('breadcrumbs', { 'items': [
+    { 'name': 'Transactions', 'path': 'app_transaction.index' },
+    { 'name': 'Budget', 'path': 'app_budget.index' },
+    { 'name': 'Create budget' }
+  ] }) }}
+
+  <form action="{{ path('app_budget.store') }}" method="post">
+    {% include 'budget/form.html.twig' %}
+  </form>
+
+{% endblock %}

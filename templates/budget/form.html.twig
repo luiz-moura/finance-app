@@ -1,0 +1,32 @@
+{% if errors is defined %}
+  {{ component('validation-failed', { 'errors': errors }) }}
+{% endif %}
+
+<input type="text"
+       name="name"
+       placeholder="Name"
+       value="{{ budget.name ?? '' }}"
+       class="input input-bordered w-full my-2"/>
+
+<label class="input input-bordered flex items-center gap-2 my-2">
+  <span class="material-symbols-outlined">price_check</span>
+  <input type="text"
+         name="value"
+         value="{{ budget.value ?? '' }}"
+         class="grow bg-transparent inputmask-currency"
+         autocomplete="false"/>
+</label>
+
+<select name="category_id" class="select select-bordered w-full max-w-xs my-2">
+  {% for category in categories %}
+    <option value="{{ category.id }}" {% if budget is defined and budget.category.id == category.id %}selected{% endif %}>
+      {{ category.name }}
+    </option>
+  {% endfor %}
+</select>
+
+<div>
+  <button type="submit" class="btn mt-2">
+    {% if budget is defined %} Update {% else %} Create {% endif %}
+  </button>
+</div>

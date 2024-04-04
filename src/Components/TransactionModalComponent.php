@@ -7,5 +7,5 @@ use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 #[AsTwigComponent('transaction-modal')]
 class TransactionModalComponent
 {
-    public $categories;
+    public array $categories;
 }

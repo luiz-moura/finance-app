@@ -7,5 +7,5 @@ use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 #[AsTwigComponent('transactions-table')]
 class TransactionsTableComponent
 {
-    public $transactions;
+    public array $transactions;
 }

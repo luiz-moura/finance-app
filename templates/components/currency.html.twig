@@ -1,0 +1,18 @@
+<div class="stats shadow">
+	{% for coin in coins %}
+		<div class="stat">
+			<div class="stat-figure text-primary">
+        {% if (coin.code == 'EUR') %}
+          <span class="material-symbols-outlined">euro_symbol</span>
+        {% elseif coin.code == 'BTC' %}
+          <span class="material-symbols-outlined">currency_bitcoin</span>
+        {% else %}
+          <span class="material-symbols-outlined">attach_money</span>
+        {% endif %}
+			</div>
+			<div class="stat-title">{{ coin.code }}</div>
+			<div class="stat-value text-primary">{{ coin.high }}</div>
+			<div class="stat-desc">{{ coin.pctChange }}</div>
+		</div>
+	{% endfor %}
+</div>

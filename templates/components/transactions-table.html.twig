@@ -1,6 +1,5 @@
 <div class="overflow-x-auto w-full my-8">
 	<table class="table w-full">
-		<!-- head -->
 		<thead>
 			<tr>
 				<th>Title</th>
@@ -14,17 +13,17 @@
         <tr>
           <td>
             {{ transaction.title }} <br>
-            <span class="badge badge-ghost badge-sm">{{ transaction.createdAt|format_datetime() }}</span>
+            <span class="badge badge-ghost badge-sm">{{ transaction.created_at|format_datetime() }}</span>
           </td>
           <td class="{{ transaction.type == 'withdraw' ? 'withdraw' : 'deposit' }}">{{ transaction.value  }}</td>
           <td>
             {% for category in transaction.categories %}
-              <div class="badge gap-2 text-white" style="background: {{ category.background }}">
-                <form action="{{ path('app_transaction-category.delete', { transaction: transaction.id, category: category.id }) }}" method="post" class="inline-flex">
+              <div class="badge gap-2 text-white p-3" style="background: {{ category.background }}">
+                <form action="{{ path('app_transaction-category.delete', { transactionId: transaction.id, categoryId: category.id }) }}" method="post" class="inline-flex">
                   <input type="hidden" name="_method" value="DELETE">
-                  <button type="submit"><span class="material-symbols-outlined text-lg">cancel</span></button>
+                  <button type="submit"><span class="material-symbols-outlined text-xl">cancel</span></button>
                 </form>
-                {{ category.name }}
+                <span>{{ category.name }}</span>
               </div>
             {% endfor %}
           </td>

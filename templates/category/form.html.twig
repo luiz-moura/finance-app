@@ -1,24 +1,12 @@
 {% if errors is defined %}
-  <div class="alert alert-warning shadow-lg">
-    <div>
-      <span class="material-symbols-outlined stroke-info flex-shrink-0 w-6 h-6">error</span>
-      <div>
-        <h3 class="font-bold">Warnings!</h3>
-        <ul>
-          {% for error in errors %}
-            <li class="text-sm">{{ error.message }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-    </div>
-  </div>
+  {{ component('validation-failed', { 'errors': errors }) }}
 {% endif %}
 
 <input type="text"
-        name="name"
-        placeholder="Name"
-        value="{{ category.name ?? '' }}"
-        class="input input-bordered w-full my-2"/>
+       name="name"
+       placeholder="Name"
+       value="{{ category.name ?? '' }}"
+       class="input input-bordered w-full my-2"/>
 
 <div id="swatch" class="bg-zinc-950">
   <input type="color"
@@ -31,8 +19,8 @@
   </div>
 </div>
 
-<div class="modal-action">
-  <button type="submit" for="modal-transaction" class="btn">
+<div>
+  <button type="submit" class="btn mt-3">
     {% if category is defined %} Update {% else %} Create {% endif %}
   </button>
 </div>

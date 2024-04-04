@@ -4,14 +4,12 @@
 
 {% block body %}
 
-  <h1 class="text-lg mb-4">Categories</h1>
+  <h1 class="text-3xl mb-4">Categories</h1>
 
-  <div class="text-sm breadcrumbs mb-4">
-    <ul>
-      <li><a href="{{ path('app_transaction.index') }}">Transactions</a></li>
-      <li>Categories</li>
-    </ul>
-  </div>
+  {{ component('breadcrumbs', { 'items': [
+    { 'name': 'Transactions', 'path': 'app_transaction.index' },
+    { 'name': 'Categories' }
+  ] }) }}
 
   <a href="{{ path('app_category.create') }}" class="btn gap-2">
     <span class="material-symbols-outlined">add</span>

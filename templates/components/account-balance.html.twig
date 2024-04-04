@@ -1,0 +1,10 @@
+<div class="stats bg-primary text-primary-content {{ balance < 0 ? 'bg-accent' : 'bg-secondary' }}">
+  <div class="stat">
+    <div class="stat-title text-secondary-content">{{ 'Account balance'|upper }}</div>
+    <div class="stat-value">R$ {{ balance }}</div>
+    <div class="stat-actions">
+      <label for="modal-transaction" class="btn btn-sm model-button">Withdrawal</label>
+      <label for="modal-transaction" class="btn btn-sm model-button">Deposit</label>
+    </div>
+  </div>
+</div>

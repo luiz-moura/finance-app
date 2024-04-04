@@ -1,0 +1,40 @@
+<div class="overflow-x-auto w-full my-8">
+	<table class="table w-full">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Amount</th>
+				<th>Category</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for budget in budgets %}
+        <tr>
+          <td>{{ budget.name }}</td>
+          <td>{{ budget.value  }}</td>
+          <td>
+            <div class="badge gap-2 text-white" style="background: {{ budget.category.background }}">
+              {{ budget.category.name }}
+            </div>
+          </td>
+          <th class="text-right">
+            <a href="{{ path('app_budget.edit', { id: budget.id }) }}"><span class="material-symbols-outlined">edit_note</span></a>
+            <form action="{{ path('app_budget.delete', { id: budget.id }) }}" method="post" class="inline-flex">
+              <input type="hidden" name="_method" value="DELETE">
+              <button type="submit"><span class="material-symbols-outlined">delete_forever</span></button>
+            </form>
+          </th>
+        </tr>
+      {% endfor %}
+		</tbody>
+		<tfoot>
+			<tr>
+				<th>Title</th>
+        <th>Amount</th>
+				<th>Category</th>
+				<th></th>
+			</tr>
+		</tfoot>
+	</table>
+</div>

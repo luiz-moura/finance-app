@@ -1,4 +1,3 @@
-<!-- Put this part before </body> tag -->
 <input type="checkbox" id="modal-transaction" class="modal-toggle"/>
 
 <label for="modal-transaction" class="modal cursor-pointer">
@@ -19,10 +18,17 @@
 
       <label class="label">Category</label>
       <div class="form-control overflow-scroll max-h-30 pr-2">
+        {% if categories is empty %}
+          <span>No categories registered yet.</span>
+        {% endif %}
+
         {% for category in categories %}
           <label class="cursor-pointer label">
             <span class="label-text">{{ category.name }}</span>
-            <input type="checkbox" name="categories[]" value="{{ category.id }}" class="checkbox checkbox-accent"/>
+            <input type="checkbox"
+                   name="categories[]"
+                   value="{{ category.id }}"
+                   class="checkbox checkbox-accent"/>
           </label>
         {% endfor %}
       </div>

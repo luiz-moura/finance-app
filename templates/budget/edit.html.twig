@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Budget edit{% endblock %}
+
+{% block body %}
+
+  <h1 class="text-3xl mb-4">Budget edit</h1>
+
+  {{ component('breadcrumbs', { 'items': [
+    { 'name': 'Transactions', 'path': 'app_transaction.index' },
+    { 'name': 'Budget', 'path': 'app_budget.index' },
+    { 'name': 'Edit budget' }
+  ] }) }}
+
+  <form action="{{ path('app_budget.update', { id: budget.id }) }}" method="post">
+    <input type="hidden" name="_method" value="PUT">
+    {% include 'budget/form.html.twig' %}
+  </form>
+
+{% endblock %}

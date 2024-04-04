@@ -1,0 +1,13 @@
+<div class="text-sm breadcrumbs mb-4">
+  <ul>
+    {% for item in items %}
+      <li>
+        {% if item.path is defined %}
+          <a href="{{ path(item.path) }}">{{ item.name }}</a>
+        {% else %}
+          {{ item.name }}
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+</div>
