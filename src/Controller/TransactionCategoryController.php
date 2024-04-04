@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Repository\CategoryRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\TransactionRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -16,19 +15,20 @@ class TransactionCategoryController extends AbstractController
         private CategoryRepository $categoryRepository
     ) {}
 
-    #[Route('/transaction/{transaction}/category/{category}', name: 'app_transaction-category.delete', methods: ['DELETE'])]
-    public function delete(int $transaction, int $category, EntityManagerInterface $em): Response
+    #[Route('/transaction/{transactionId}/category/{categoryId}', name: 'app_transaction-category.delete', methods: ['DELETE'])]
+    public function delete(int $transactionId, int $categoryId): Response
     {
-        $transaction = $this->transactionRepository->find($transaction);
-        $category = $this->categoryRepository->find($category);
-
-        if (!$category || !$transaction) {
-            throw $this->createNotFoundException('No category found');
+        $transaction = $this->transactionRepository->find($transactionId);
+        if (!$transaction) {
+            throw $this->createNotFoundException('Transaction not found');
         }
 
-        $transaction->removeCategory($category);
+        $category = $this->categoryRepository->find($categoryId);
+        if (!$category) {
+            throw $this->createNotFoundException('Category not found');
+        }
 
-        $em->flush();
+        $this->transactionRepository->detachCategory($transaction, $category);
 
         $this->addFlash('success', "Category {$category->getName()} removed");
 

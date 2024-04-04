@@ -4,11 +4,9 @@ namespace App\Controller\API;
 
 use App\Entity\Category;
 use App\Repository\CategoryRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -20,85 +18,81 @@ class CategoryController extends AbstractController
     public function index(): Response
     {
         $categories = $this->categoryRepository->findAll();
-        $categoriesArray = (new ArrayCollection($categories))->map(
-            fn ($category) => $category->toArray()
-        )->toArray();
 
-        return $this->json($categoriesArray);
+        return $this->json($categories, context: ['groups' => 'category']);
     }
 
     #[Route('api/category/{id}', name: 'app_category_api.show', methods: ['GET'])]
     public function show(int $id): Response
     {
         $category = $this->categoryRepository->find($id);
+        if (!$category) {
+            return $this->json(['message' => 'Category not found.'], Response::HTTP_NOT_FOUND);
+        }
 
-        return $this->json($category->toArray());
+        return $this->json($category, context: ['groups' => 'category']);
     }
 
     #[Route('api/category', name: 'app_category_api.store', methods: ['POST'])]
-    public function store(Request $request, EntityManagerInterface $em, ValidatorInterface $validator): Response
+    public function store(Request $request, ValidatorInterface $validator): Response
     {
-        $paramenters = json_decode($request->getContent(), true);
+        $body = json_decode($request->getContent());
 
         $category = new Category();
-        $category->setName($paramenters['name']);
-        $category->setBackground($paramenters['background']);
+        $category->setName($body['name'] ?? null);
+        $category->setBackground($body['background'] ?? null);
 
         $errors = $validator->validate($category);
+        if ($errors->count() > 0) {
+            foreach ($errors as $error) {
+                $err[$error->getPropertyPath()][] = $error->getMessage();
+            }
 
-        if (count($errors) > 0) {
-            return $this->json(['error' => $errors], 400);
+            return $this->json(['errors' => $err], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $em->persist($category);
-        $em->flush();
+        $this->categoryRepository->create($category);
 
-        return $this->json([
-            'message'   => 'Category saved with success',
-            'category'  => $category->toArray()
-        ]);
+        return $this->json($category, context: ['groups' => 'category']);
     }
 
     #[Route('api/category/{id}', name: 'app_category_api.update', methods: ['PUT'])]
-    public function update(Request $request, int $id, EntityManagerInterface $em, ValidatorInterface $validator): Response
+    public function update(int $id, Request $request, ValidatorInterface $validator): Response
     {
-        $category = $this->categoryRepository->find($id);
+        $body = json_decode($request->getContent(), true);
 
+        $category = $this->categoryRepository->find($id);
         if (!$category) {
-            return $this->json(['error' => 'No category found for id ' . $id, 404]);
+            return $this->json(['message' => 'Category not found.'], Response::HTTP_NOT_FOUND);
         }
 
-        $paramenters = json_decode($request->getContent(), true);
-
-        $category->setName($paramenters['name']);
-        $category->setBackground($paramenters['background']);
+        $category->setName($body['name']);
+        $category->setBackground($body['background']);
 
         $errors = $validator->validate($category);
+        if ($errors->count() > 0) {
+            foreach ($errors as $error) {
+                $err[$error->getPropertyPath()][] = $error->getMessage();
+            }
 
-        if (count($errors) > 0) {
-            return $this->json(['error' => $errors], 400);
+            return $this->json(['errors' => $err], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $em->flush();
+        $this->categoryRepository->update($category);
 
-        return $this->json([
-            'message'   => 'Category updated with success',
-            'category'  => $category->toArray()
-        ]);
+        return $this->json($category, context: ['groups' => 'category']);
     }
 
     #[Route('api/category/{id}', name: 'app_category_api.delete', methods: ['DELETE'])]
-    public function delete(int $id, EntityManagerInterface $em): Response
+    public function delete(int $id): Response
     {
         $category = $this->categoryRepository->find($id);
-
         if (!$category) {
-            return $this->json(['error' => 'No category found for id ' . $id, 404]);
+            return $this->json(['message' => 'Category not found.'], Response::HTTP_NOT_FOUND);
         }
 
-        $em->remove($category);
-        $em->flush();
+        $this->categoryRepository->delete($category);
 
-        return $this->json(['message' => 'Category deleted with success'], status: 204);
+        return $this->json([], status: Response::HTTP_NO_CONTENT);
     }
 }

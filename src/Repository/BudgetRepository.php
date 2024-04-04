@@ -13,21 +13,21 @@ class BudgetRepository extends ServiceEntityRepository
         parent::__construct($registry, Budget::class);
     }
 
-    public function add(Budget $entity, bool $flush = false): void
+    public function create(Budget $budget): void
     {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
+        $this->getEntityManager()->persist($budget);
+        $this->getEntityManager()->flush();
     }
 
-    public function remove(Budget $entity, bool $flush = false): void
+    public function update(Budget $budget): void
     {
-        $this->getEntityManager()->remove($entity);
+        $this->getEntityManager()->persist($budget);
+        $this->getEntityManager()->flush();
+    }
 
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
+    public function delete(Budget $budget): void
+    {
+        $this->getEntityManager()->remove($budget);
+        $this->getEntityManager()->flush();
     }
 }

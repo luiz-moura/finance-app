@@ -7,46 +7,52 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[UniqueEntity(fields: ['name'], message: 'This name is already in use.')]
 class Category
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups(['category', 'transaction', 'budget'])]
     private $id;
 
     #[Assert\NotBlank]
     #[Assert\Length(min: 3, max: 255)]
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, unique: true)]
+    #[Groups(['category', 'transaction', 'budget'])]
     private $name;
 
     #[Assert\NotBlank]
     #[Assert\CssColor]
     #[ORM\Column(type: 'string', length: 10)]
+    #[Groups('category')]
     private $background;
 
     #[ORM\Column(type: 'datetime')]
     private $createdAt;
 
     #[ORM\ManyToMany(targetEntity: Transaction::class, mappedBy: 'categories')]
-    private $transactions;
+    private Collection $transactions;
 
-    #[ORM\OneToMany(mappedBy: 'Category', targetEntity: Budget::class, orphanRemoval: true)]
-    private $budgets;
-
-    #[ORM\PrePersist]
-    public function createdAt(): void
-    {
-        $this->createdAt = new DateTime();
-    }
+    #[ORM\OneToMany(mappedBy: 'category', targetEntity: Budget::class, orphanRemoval: true)]
+    private Collection $budgets;
 
     public function __construct()
     {
         $this->transactions = new ArrayCollection();
         $this->budgets = new ArrayCollection();
+    }
+
+    #[ORM\PrePersist]
+    public function created_at(): void
+    {
+        $this->createdAt = new DateTime();
     }
 
     public function getId(): ?int
@@ -59,7 +65,7 @@ class Category
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName($name): self
     {
         $this->name = $name;
 
@@ -71,7 +77,7 @@ class Category
         return $this->background;
     }
 
-    public function setBackground(string $background): self
+    public function setBackground($background): self
     {
         $this->background = $background;
 
@@ -83,9 +89,6 @@ class Category
         return date_format($this->createdAt, 'Y-m-d H:i:s');
     }
 
-    /**
-     * @return Collection<int, Transaction>
-     */
     public function getTransactions(): Collection
     {
         return $this->transactions;
@@ -93,26 +96,20 @@ class Category
 
     public function addTransaction(Transaction $transaction): self
     {
-        if (!$this->transactions->contains($transaction)) {
-            $this->transactions[] = $transaction;
-            $transaction->addCategory($this);
-        }
+        $this->transactions->add($transaction);
+        $transaction->addCategory($this);
 
         return $this;
     }
 
     public function removeTransaction(Transaction $transaction): self
     {
-        if ($this->transactions->removeElement($transaction)) {
-            $transaction->removeCategory($this);
-        }
+        $this->transactions->removeElement($transaction);
+        $transaction->removeCategory($this);
 
         return $this;
     }
 
-    /**
-     * @return Collection<int, Budget>
-     */
     public function getBudgets(): Collection
     {
         return $this->budgets;
@@ -120,22 +117,16 @@ class Category
 
     public function addBudget(Budget $budget): self
     {
-        if (!$this->budgets->contains($budget)) {
-            $this->budgets[] = $budget;
-            $budget->setCategory($this);
-        }
+        $this->budgets->add($budget);
+        $budget->setCategory($this);
 
         return $this;
     }
 
     public function removeBudget(Budget $budget): self
     {
-        if ($this->budgets->removeElement($budget)) {
-            // set the owning side to null (unless already changed)
-            if ($budget->getCategory() === $this) {
-                $budget->setCategory(null);
-            }
-        }
+        $this->budgets->removeElement($budget);
+        $budget->setCategory(null);
 
         return $this;
     }

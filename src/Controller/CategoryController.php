@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Category;
 use App\Repository\CategoryRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -30,20 +29,18 @@ class CategoryController extends AbstractController
     }
 
     #[Route('/category', name: 'app_category.store', methods: ['POST'])]
-    public function store(Request $request, EntityManagerInterface $em, ValidatorInterface $validator): Response
+    public function store(Request $request, ValidatorInterface $validator): Response
     {
         $category = new Category();
         $category->setName($request->get('name'));
         $category->setBackground($request->get('background'));
 
         $errors = $validator->validate($category);
-
-        if (count($errors) > 0) {
-            return $this->render('category/create.html.twig', compact('errors'));
+        if ($errors->count() > 0) {
+            return $this->redirectToRoute('app_category.index', compact('errors'));
         }
 
-        $em->persist($category);
-        $em->flush();
+        $this->categoryRepository->create($category);
 
         $this->addFlash('success', 'Category saved with success');
 
@@ -54,33 +51,30 @@ class CategoryController extends AbstractController
     public function edit(int $id): Response
     {
         $category = $this->categoryRepository->find($id);
-
         if (!$category) {
-            throw $this->createNotFoundException('No category found for id ' . $id);
+            throw $this->createNotFoundException('Category not found');
         }
 
         return $this->render('category/edit.html.twig', compact('category'));
     }
 
     #[Route('/category/{id}', name: 'app_category.update', methods: ['PUT'])]
-    public function update(Request $request, int $id, EntityManagerInterface $em, ValidatorInterface $validator): Response
+    public function update(Request $request, int $id, ValidatorInterface $validator): Response
     {
         $category = $this->categoryRepository->find($id);
-
         if (!$category) {
-            throw $this->createNotFoundException('No category found for id ' . $id);
+            throw $this->createNotFoundException('Category not found');
         }
 
         $category->setName($request->get('name'));
         $category->setBackground($request->get('background'));
 
         $errors = $validator->validate($category);
-
-        if (count($errors) > 0) {
-            return $this->render('category/edit.html.twig', compact('errors'));
+        if ($errors->count() > 0) {
+            return $this->redirectToRoute('app_category.index', compact('errors'));
         }
 
-        $em->flush();
+        $this->categoryRepository->update($category);
 
         $this->addFlash('success', 'Category updated with success');
 
@@ -88,16 +82,14 @@ class CategoryController extends AbstractController
     }
 
     #[Route('/category/{id}', name: 'app_category.delete', methods: ['DELETE'])]
-    public function delete(int $id, EntityManagerInterface $em): Response
+    public function delete(int $id): Response
     {
         $category = $this->categoryRepository->find($id);
-
         if (!$category) {
-            throw $this->createNotFoundException('No category found for id ' . $id);
+            throw $this->createNotFoundException('Category not found');
         }
 
-        $em->remove($category);
-        $em->flush();
+        $this->categoryRepository->delete($category);
 
         $this->addFlash('success', 'Category deleted with success');
 

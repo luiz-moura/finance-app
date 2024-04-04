@@ -4,8 +4,9 @@ namespace App\Controller;
 
 use App\Entity\Transaction;
 use App\Repository\CategoryRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\TransactionRepository;
+use App\Services\CurrencyService;
+use Doctrine\Common\Collections\Collection;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -20,36 +21,40 @@ class TransactionController extends AbstractController
     ) {}
 
     #[Route('/', name: 'app_transaction.index', methods: ['GET'])]
-    public function index(): Response
+    public function index(CurrencyService $currencyService): Response
     {
         $transactions = $this->transactionRepository->findAll();
-        $balance = $this->transactionRepository->balance();
         $categories = $this->categoryRepository->findAll();
+        $balance = $this->transactionRepository->getAccountBalance();
+        $coins = $currencyService->getCoinsWithExchangeValue();
 
-        return $this->render('transaction/index.html.twig', compact('transactions', 'categories', 'balance'));
+        return $this->render('transaction/index.html.twig', compact(
+            'transactions',
+            'categories',
+            'balance',
+            'coins'
+        ));
     }
 
     #[Route('/transaction', name: 'app_transaction.store', methods: ['POST'])]
-    public function store(Request $request, EntityManagerInterface $em, ValidatorInterface $validator): Response
+    public function store(Request $request, ValidatorInterface $validator): Response
     {
         $transaction = new Transaction();
         $transaction->setTitle($request->get('title'));
         $transaction->setValue($request->get('value'));
         $transaction->setType($request->get('type'));
 
-        if (!empty($request->get('categories'))) {
+        if ($request->get('categories')) {
             $categories = $this->categoryRepository->findBy(['id' => $request->get('categories')]);
-            array_map(fn ($category) => $category->addTransaction($transaction), $categories);
+            array_map(fn ($category) => $transaction->addCategory($category), $categories);
         }
 
         $errors = $validator->validate($transaction);
-
-        if (count($errors) > 0) {
-            return $this->redirectToRoute('app_transaction.index');
+        if ($errors->count() > 0) {
+            return $this->redirectToRoute('app_transaction.index', compact('errors'));
         }
 
-        $em->persist($transaction);
-        $em->flush();
+        $this->transactionRepository->create($transaction);
 
         $this->addFlash('success', 'Transaction saved with success');
 
@@ -59,50 +64,51 @@ class TransactionController extends AbstractController
     #[Route('transaction/{id}', name: 'app_transaction.edit', methods: ['GET'])]
     public function edit(int $id): Response
     {
-        $transaction = $this->transactionRepository->find($id);
-        $categories = $this->categoryRepository->findAll();
-
+        $transaction = $this->transactionRepository->findWithCategories($id);
         if (!$transaction) {
-            throw $this->createNotFoundException('No transaction found for id ' . $id);
+            throw $this->createNotFoundException('Transaction not found');
         }
+
+        $categories = $this->categoryRepository->findAll();
 
         return $this->render('transaction/edit.html.twig', compact('transaction', 'categories'));
     }
 
     #[Route('/transaction/{id}', name: 'app_transaction.update', methods: ['PUT'])]
-    public function update(Request $request, int $id, EntityManagerInterface $em, ValidatorInterface $validator): Response
+    public function update(Request $request, int $id, ValidatorInterface $validator): Response
     {
         $transaction = $this->transactionRepository->find($id);
-
         if (!$transaction) {
-            throw $this->createNotFoundException('No transaction found for id ' . $id);
+            throw $this->createNotFoundException('Transaction not found');
         }
 
         $transaction->setTitle($request->get('title'));
         $transaction->setValue($request->get('value'));
         $transaction->setType($request->get('type'));
 
-        if (!empty($request->get('categories'))) {
-            $myCats = $transaction->getCategories()->map(fn ($cat) => $cat->getId())->toArray();
-            $catsRemoved = array_diff($myCats, $request->get('categories'));
+        if ($request->get('categories')) {
+            $transactionCategories = $transaction->getCategories()
+                ->map(fn ($cat) => $cat->getId())
+                ->toArray();
 
-            $categoriesAdd = $this->categoryRepository->findBy(['id' => $request->get('categories')]);
-            $catsRemoved = $transaction->getCategories()->filter(fn ($cat) => in_array($cat->getId(), $catsRemoved))->toArray();
+            $categoriesIdsRemoved = array_diff($transactionCategories, $request->get('categories'));
+            $transaction->getCategories()
+                ->filter(fn ($cat) => in_array($cat->getId(), $categoriesIdsRemoved))
+                ->map(fn ($cat) => $transaction->removeCategory($cat));
 
-            array_map(fn ($cat) => $cat->addTransaction($transaction), $categoriesAdd);
-            array_map(fn ($cat) => $cat->removeTransaction($transaction), $catsRemoved);
+            $categoriesIdsAdded = array_diff($request->get('categories'), $transactionCategories);
+            $categories = $this->categoryRepository->findBy(['id' => $categoriesIdsAdded]);
+            array_map(fn ($cat) => $transaction->addCategory($cat), $categories);
         } else {
-            // Remove all categories
-            array_map(fn ($cat) => $cat->removeTransaction($transaction), $transaction->getCategories()->toArray());
+            $transaction->getCategories()->map(fn ($cat) => $transaction->removeCategory($cat));
         }
 
         $errors = $validator->validate($transaction);
-
-        if (count($errors) > 0) {
-            return $this->render('transaction/edit.html.twig', compact('errors'));
+        if ($errors->count() > 0) {
+            return $this->redirectToRoute('app_transaction.index', compact('errors'));
         }
 
-        $em->flush();
+        $this->transactionRepository->update($transaction);
 
         $this->addFlash('success', 'Transaction updated with success');
 
@@ -110,16 +116,14 @@ class TransactionController extends AbstractController
     }
 
     #[Route('/transaction/{id}', name: 'app_transaction.delete', methods: ['DELETE'])]
-    public function delete(int $id, EntityManagerInterface $em): Response
+    public function delete(int $id): Response
     {
         $transaction = $this->transactionRepository->find($id);
-
         if (!$transaction) {
-            throw $this->createNotFoundException('No transaction found for id ' . $id);
+            throw $this->createNotFoundException('Transaction not found');
         }
 
-        $em->remove($transaction);
-        $em->flush();
+        $this->transactionRepository->delete($transaction);
 
         $this->addFlash('success', 'Transaction deleted with success');
 

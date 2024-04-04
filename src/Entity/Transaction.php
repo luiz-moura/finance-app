@@ -10,50 +10,55 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Asset\Package;
 use Symfony\Component\Asset\VersionStrategy\EmptyVersionStrategy;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: TransactionRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 class Transaction
 {
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups('transaction')]
     private $id;
 
     #[Assert\NotBlank]
     #[Assert\Length(min: 3, max: 255)]
     #[ORM\Column(type: 'string', length: 255)]
+    #[Groups('transaction')]
     private $title;
 
     #[Assert\NotBlank]
     #[Assert\Positive]
     #[ORM\Column(type: 'decimal', precision: 8, scale: 2)]
+    #[Groups('transaction')]
     private $value;
 
     #[Assert\NotBlank]
     #[Assert\Length(min: 3, max: 10)]
     #[ORM\Column(type: 'string', length: 45)]
+    #[Groups('transaction')]
     private $type;
+
+    #[ORM\Column(type: 'string', length: 1000, nullable: true)]
+    private $image;
 
     #[ORM\Column(type: 'datetime')]
     private $createdAt;
 
     #[ORM\ManyToMany(targetEntity: Category::class, inversedBy: 'transactions')]
-    private $categories;
-
-    #[ORM\Column(type: 'string', length: 1000, nullable: true)]
-    private $image;
-
-    #[ORM\PrePersist]
-    public function createdAt(): void
-    {
-        $this->createdAt = new DateTime();
-    }
+    #[Groups('transaction')]
+    private Collection $categories;
 
     public function __construct()
     {
         $this->categories = new ArrayCollection();
+    }
+
+    #[ORM\PrePersist]
+    public function created_at(): void
+    {
+        $this->createdAt = new DateTime();
     }
 
     public function getId(): ?int
@@ -66,7 +71,7 @@ class Transaction
         return $this->title;
     }
 
-    public function setTitle(string $title): self
+    public function setTitle($title): self
     {
         $this->title = $title;
 
@@ -78,7 +83,7 @@ class Transaction
         return 'R$ ' . number_format($this->value, 2, ',', '.');
     }
 
-    public function setValue(string $value): self
+    public function setValue($value): self
     {
         $this->value = $value;
 
@@ -90,21 +95,37 @@ class Transaction
         return $this->type;
     }
 
-    public function setType(string $type): self
+    public function setType($type): self
     {
         $this->type = $type;
 
         return $this;
     }
 
-    public function getCreatedAt(): ?string
+    public function getImage(): ?string
     {
-        return date_format($this->createdAt, 'Y-m-d H:i:s');
+        return $this->image;
     }
 
-    /**
-     * @return Collection<int, Category>
-     */
+    public function setImage($image): self
+    {
+        $this->image = $image;
+
+        return $this;
+    }
+
+    public function getImageDir(): ?string
+    {
+        $package = new Package(new EmptyVersionStrategy());
+
+        return $package->getUrl("uploads/{$this->getImage()}");
+    }
+
+    public function getCreatedAt(): ?string
+    {
+        return $this->createdAt->format('Y-m-d H:i:s');
+    }
+
     public function getCategories(): Collection
     {
         return $this->categories;
@@ -112,9 +133,7 @@ class Transaction
 
     public function addCategory(Category $category): self
     {
-        if (!$this->categories->contains($category)) {
-            $this->categories[] = $category;
-        }
+        $this->categories->add($category);
 
         return $this;
     }
@@ -137,25 +156,6 @@ class Transaction
             'image_url'     => $this->getImageDir(),
             'created_at'    => $this->getCreatedAt(),
             'categories'    => $this->getCategories()->map(fn ($cat) => $cat->toArray())->toArray(),
-            'catkeys'       => $this->getCategories()->map(fn ($cat) => $cat->getId())->toArray(),
         ];
-    }
-
-    public function getImageDir(): ?string
-    {
-        $package = new Package(new EmptyVersionStrategy());
-        return $package->getUrl("uploads/{$this->getImage()}");
-    }
-
-    public function getImage(): ?string
-    {
-        return $this->image;
-    }
-
-    public function setImage(?string $image): self
-    {
-        $this->image = $image;
-
-        return $this;
     }
 }

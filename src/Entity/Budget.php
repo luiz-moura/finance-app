@@ -5,20 +5,29 @@ namespace App\Entity;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\BudgetRepository;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: BudgetRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[UniqueEntity(fields: ['name'], message: 'This name is already in use.')]
 class Budget
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups('budget', 'category')]
     private $id;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'string', length: 255, unique: true)]
+    #[Groups('budget', 'category')]
     private $name;
 
+    #[Assert\NotBlank]
     #[ORM\Column(type: 'decimal', precision: 8, scale: 2)]
+    #[Groups('budget', 'category')]
     private $value;
 
     #[ORM\Column(type: 'datetime')]
@@ -26,10 +35,11 @@ class Budget
 
     #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: 'budgets')]
     #[ORM\JoinColumn(nullable: false)]
-    private $Category;
+    #[Groups('budget', 'category')]
+    private $category;
 
     #[ORM\PrePersist]
-    public function createdAt(): void
+    public function created_at(): void
     {
         $this->createdAt = new DateTime();
     }
@@ -44,7 +54,7 @@ class Budget
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName($name): self
     {
         $this->name = $name;
 
@@ -56,7 +66,7 @@ class Budget
         return 'R$ ' . number_format($this->value, 2, ',', '.');
     }
 
-    public function setValue(string $value): self
+    public function setValue($value): self
     {
         $this->value = $value;
 
@@ -70,12 +80,12 @@ class Budget
 
     public function getCategory(): ?Category
     {
-        return $this->Category;
+        return $this->category;
     }
 
     public function setCategory(?Category $Category): self
     {
-        $this->Category = $Category;
+        $this->category = $Category;
 
         return $this;
     }

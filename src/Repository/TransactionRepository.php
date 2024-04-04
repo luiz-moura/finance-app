@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Category;
 use App\Entity\Transaction;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -13,25 +14,42 @@ class TransactionRepository extends ServiceEntityRepository
         parent::__construct($registry, Transaction::class);
     }
 
-    public function add(Transaction $entity, bool $flush = false): void
+    public function create(Transaction $transaction): void
     {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
+        $this->getEntityManager()->persist($transaction);
+        $this->getEntityManager()->flush();
     }
 
-    public function remove(Transaction $entity, bool $flush = false): void
+    public function update(Transaction $transaction): void
     {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
+        $this->getEntityManager()->persist($transaction);
+        $this->getEntityManager()->flush();
     }
 
-    public function balance(): string
+    public function delete(Transaction $transaction): void
+    {
+        $this->getEntityManager()->remove($transaction);
+        $this->getEntityManager()->flush();
+    }
+
+    public function detachCategory(Transaction $transaction, Category $category): void
+    {
+        $transaction->removeCategory($category);
+        $this->getEntityManager()->flush();
+    }
+
+    public function findWithCategories($id): ?Transaction
+    {
+        return $this->createQueryBuilder('t')
+            ->leftJoin('t.categories', 'c')
+            ->addSelect('c')
+            ->andWhere('t.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function getAccountBalance(): string
     {
         $withdraw = $this->createQueryBuilder('t')
             ->select('SUM(t.value) AS total')
@@ -50,15 +68,5 @@ class TransactionRepository extends ServiceEntityRepository
         $total = $deposit - $withdraw;
 
         return number_format($total, 2, ',', '.');
-    }
-
-    public function findAllGreaterThanPrice(): array
-    {
-        $qb = $this->createQueryBuilder('t')
-            ->orderBy('t.created_at', 'ASC');
-
-        $query = $qb->getQuery();
-
-        return $query->execute();
     }
 }

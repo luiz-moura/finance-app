@@ -3,154 +3,146 @@
 namespace App\Controller\API;
 
 use App\Entity\Transaction;
-use App\Services\FileUploader;
+use App\Services\FileService;
 use App\Repository\CategoryRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\TransactionRepository;
-use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class TransactionController extends AbstractController
 {
-    public function __construct(private TransactionRepository $transactionRepository)
-    {
-    }
+    public function __construct(private TransactionRepository $transactionRepository) {}
 
     #[Route('api/transaction', name: 'app_transaction_api.index', methods: ['GET'])]
     public function index(): Response
     {
-        $transactions = new ArrayCollection($this->transactionRepository->findAll());
-        $transactions = $transactions->map(fn ($transaction) => $transaction->toArray())->toArray();
+        $transactions = $this->transactionRepository->findAll();
 
-        return $this->json($transactions);
+        return $this->json($transactions, context: ['groups' => 'transaction']);
     }
 
     #[Route('api/transaction/{id}', name: 'app_transaction_api.show', methods: ['GET'])]
     public function show(int $id): Response
     {
         $transaction = $this->transactionRepository->find($id);
-        return $this->json($transaction->toArray());
+        if (!$transaction) {
+            return $this->json(['message' => 'Transaction not found.'], Response::HTTP_NOT_FOUND);
+        }
+
+        return $this->json($transaction, context: ['groups' => 'transaction']);
     }
 
     #[Route('api/transaction', name: 'app_transaction_api.store', methods: ['POST'])]
     public function store(
         Request $request,
-        EntityManagerInterface $em,
         CategoryRepository $categoryRepository,
-        FileUploader $fileUploader,
+        FileService $fileUploader,
         ValidatorInterface $validator
     ): Response {
-        $parameters = $request->request->all() ?? $request->toArray();
+        $body = json_decode($request->getContent(), true);
 
         $transaction = new Transaction();
-        $transaction->setTitle($parameters['title']);
-        $transaction->setValue(tofloat($parameters['value']));
-        $transaction->setType($parameters['type']);
+        $transaction->setTitle($body['title'] ?? null);
+        $transaction->setValue($body['value'] ?? null);
+        $transaction->setType($body['type'] ?? null);
 
-        if (isset($parameters['categories']) && is_array($parameters['categories'])) {
-            $categories = $categoryRepository->findBy(['id' => $parameters['categories']]);
+        if (isset($body['categories'])) {
+            $categories = $categoryRepository->findBy(['id' => $body['categories']]);
             array_map(fn ($category) => $category->addTransaction($transaction), $categories);
         }
 
         if ($request->files->get('image')) {
-            $filesystem = new Filesystem();
-            $filesystem->remove($transaction->getImageDir());
-
-            $fileName = $fileUploader->upload($request->files->get('image'));
-            $transaction->setImage($fileName);
+            $path = $fileUploader->store($request->files->get('image'));
+            $transaction->setImage($path);
         }
 
         $errors = $validator->validate($transaction);
+        if ($errors->count() > 0) {
+            foreach ($errors as $error) {
+                $err[$error->getPropertyPath()][] = $error->getMessage();
+            }
 
-        if (count($errors) > 0) {
-            return $this->json(['error' => $errors], 400);
+            return $this->json(['errors' => $err], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $em->persist($transaction);
-        $em->flush();
+        $this->transactionRepository->create($transaction);
 
-        return $this->json([
-            'message'     => 'Successfully created',
-            'transaction' => $transaction->toArray()
-        ]);
+        return $this->json($transaction, context: ['groups' => 'transaction']);
     }
 
     #[Route('api/transaction/{id}', name: 'app_transaction_api.update', methods: ['PUT', 'POST'])]
     public function update(
-        Request $request,
         int $id,
+        Request $request,
         CategoryRepository $categoryRepository,
-        FileUploader $fileUploader,
-        EntityManagerInterface $em,
+        FileService $fileUploader,
         ValidatorInterface $validator
     ): Response {
         $transaction = $this->transactionRepository->find($id);
-
         if (!$transaction) {
-            return $this->json(['error' => 'No transaction found for id ' . $id], 404);
+            return $this->json(['message' => 'Transaction not found.'], Response::HTTP_NOT_FOUND);
         }
 
-        $parameters = $request->request->all() ?? $request->toArray();
+        $body = json_decode($request->getContent(), true);
 
-        $transaction->setTitle($parameters['title']);
-        $transaction->setValue(tofloat($parameters['value']));
-        $transaction->setType($parameters['type']);
+        $transaction->setTitle($body['title'] ?? null);
+        $transaction->setValue($body['value'] ?? null);
+        $transaction->setType($body['type'] ?? null);
 
-        if (isset($parameters['categories']) && is_array($parameters['categories'])) {
-            $myCats = $transaction->getCategories()->map(fn ($cat) => $cat->getId())->toArray();
-            $catsRemoved = array_diff($myCats, $parameters['categories']);
+        if (isset($body['categories'])) {
+            $transactionCategories = $transaction->getCategories()
+                ->map(fn ($cat) => $cat->getId())
+                ->toArray();
 
-            $categoriesAdd = $categoryRepository->findBy(['id' => $parameters['categories']]);
-            $catsRemoved = $transaction->getCategories()->filter(fn ($cat) => in_array($cat->getId(), $catsRemoved))->toArray();
+            $categoriesIdsRemoved = array_diff($transactionCategories, $body['categories']);
+            $transaction->getCategories()
+                ->filter(fn ($cat) => in_array($cat->getId(), $categoriesIdsRemoved))
+                ->map(fn ($cat) => $transaction->removeCategory($cat));
 
-            array_map(fn ($cat) => $cat->addTransaction($transaction), $categoriesAdd);
-            array_map(fn ($cat) => $cat->removeTransaction($transaction), $catsRemoved);
+            $categoriesIdsAdded = array_diff($body['categories'], $transactionCategories);
+            $categories = $categoryRepository->findBy(['id' => $categoriesIdsAdded]);
+            array_map(fn ($cat) => $transaction->addCategory($cat), $categories);
         } else {
-            // Remove all categories
-            array_map(fn ($cat) => $cat->removeTransaction($transaction), $transaction->getCategories()->toArray());
-        }
-
-        if ($request->files->get('image')) {
-            $fileName = $fileUploader->upload($request->files->get('image'));
-            $transaction->setImage($fileName);
+            $transaction->getCategories()->map(fn ($cat) => $transaction->removeCategory($cat));
         }
 
         $errors = $validator->validate($transaction);
+        if ($errors->count() > 0) {
+            foreach ($errors as $error) {
+                $err[$error->getPropertyPath()][] = $error->getMessage();
+            }
 
-        if (count($errors) > 0) {
-            $this->json(['error' => $errors], 400);
+            return $this->json(['errors' => $err], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $em->flush();
+        if ($request->files->get('image')) {
+            $fileUploader->remove($transaction->getImageDir());
+            $path = $fileUploader->store($request->files->get('image'));
+            $transaction->setImage($path);
+        }
 
-        return $this->json([
-            'message'     => 'Successfully updated',
-            'transaction' => $transaction->toArray()
-        ]);
+        $this->transactionRepository->update($transaction);
+
+        return $this->json($transaction, context: ['groups' => 'transaction']);
     }
 
     #[Route('api/transaction/{id}', name: 'app_transaction_api.delete', methods: ['DELETE'])]
-    public function delete(int $id, EntityManagerInterface $em): Response
+    public function delete(int $id, FileService $fileUploader): Response
     {
         $transaction = $this->transactionRepository->find($id);
-
         if (!$transaction) {
-            return $this->json(['error' => 'No transaction found for id ' . $id], 404);
+            return $this->json(['message' => 'Transaction not found.'], Response::HTTP_NOT_FOUND);
         }
 
         if ($transaction->getImage()) {
-            $filesystem = new Filesystem();
-            $filesystem->remove($transaction->getImageDir());
+            $fileUploader->remove($transaction->getImageDir());
         }
 
-        $em->remove($transaction);
-        $em->flush();
+        $this->transactionRepository->delete($transaction);
 
-        return $this->json('Successfully deleted', 204);
+        return $this->json([], Response::HTTP_NO_CONTENT);
     }
 }
