@@ -20,31 +20,37 @@ class Transaction
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     #[Groups('transaction')]
-    private $id;
+    private ?int $id;
 
     #[Assert\NotBlank]
     #[Assert\Length(min: 3, max: 255)]
     #[ORM\Column(type: 'string', length: 255)]
     #[Groups('transaction')]
-    private $title;
+    private ?string $title;
 
     #[Assert\NotBlank]
     #[Assert\Positive]
     #[ORM\Column(type: 'decimal', precision: 8, scale: 2)]
     #[Groups('transaction')]
-    private $value;
+    private ?float $value;
 
     #[Assert\NotBlank]
     #[Assert\Length(min: 3, max: 10)]
     #[ORM\Column(type: 'string', length: 45)]
     #[Groups('transaction')]
-    private $type;
+    private ?string $type;
 
+    #[Assert\File(
+        maxSize: '1024k',
+        mimeTypes: ['png', 'jpg'],
+        mimeTypesMessage: 'Please upload a valid image',
+        disallowEmptyMessage: true
+    )]
     #[ORM\Column(type: 'string', length: 1000, nullable: true)]
-    private $image;
+    private ?string $image;
 
     #[ORM\Column(type: 'datetime')]
-    private $createdAt;
+    private DateTime $createdAt;
 
     #[ORM\ManyToMany(targetEntity: Category::class, inversedBy: 'transactions')]
     #[Groups('transaction')]
@@ -53,11 +59,6 @@ class Transaction
     public function __construct()
     {
         $this->categories = new ArrayCollection();
-    }
-
-    #[ORM\PrePersist]
-    public function created_at(): void
-    {
         $this->createdAt = new DateTime();
     }
 
@@ -71,7 +72,7 @@ class Transaction
         return $this->title;
     }
 
-    public function setTitle($title): self
+    public function setTitle(?string $title): self
     {
         $this->title = $title;
 
@@ -80,10 +81,12 @@ class Transaction
 
     public function getValue(): ?string
     {
-        return 'R$ ' . number_format($this->value, 2, ',', '.');
+        return $this->value
+            ? sprintf('R$ %s', number_format($this->value, 2, ',', '.'))
+            : null;
     }
 
-    public function setValue($value): self
+    public function setValue(?float $value): self
     {
         $this->value = $value;
 
@@ -95,7 +98,7 @@ class Transaction
         return $this->type;
     }
 
-    public function setType($type): self
+    public function setType(?string $type): self
     {
         $this->type = $type;
 
@@ -107,7 +110,7 @@ class Transaction
         return $this->image;
     }
 
-    public function setImage($image): self
+    public function setImage(?string $image): self
     {
         $this->image = $image;
 
@@ -121,7 +124,7 @@ class Transaction
         return $package->getUrl("uploads/{$this->getImage()}");
     }
 
-    public function getCreatedAt(): ?string
+    public function getCreated_at(): ?string
     {
         return $this->createdAt->format('Y-m-d H:i:s');
     }
@@ -143,19 +146,5 @@ class Transaction
         $this->categories->removeElement($category);
 
         return $this;
-    }
-
-    public function toArray(): array
-    {
-        return [
-            'id'            => $this->getId(),
-            'title'         => $this->getTitle(),
-            'value'         => $this->getValue(),
-            'type'          => $this->getType(),
-            'image'         => $this->getImage(),
-            'image_url'     => $this->getImageDir(),
-            'created_at'    => $this->getCreatedAt(),
-            'categories'    => $this->getCategories()->map(fn ($cat) => $cat->toArray())->toArray(),
-        ];
     }
 }

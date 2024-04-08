@@ -5,6 +5,7 @@ namespace App\Controller\API;
 use App\Entity\Budget;
 use App\Repository\BudgetRepository;
 use App\Repository\CategoryRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -34,33 +35,27 @@ class BudgetController extends AbstractController
         return $this->json($budget, context: ['groups' => ['budget']]);
     }
 
-    #[Route('api/budget/category/{categoryId}', name: 'app_budget_api.store', methods: ['POST'])]
+    #[Route('api/budget', name: 'app_budget_api.store', methods: ['POST'])]
     public function store(
-        int $categoryId,
         Request $request,
         CategoryRepository $categoryRepository,
         ValidatorInterface $validator
     ): Response
     {
-        $category = $categoryRepository->find($categoryId);
-        if (!$category) {
-            return $this->json(['message' => 'Category not found.'], Response::HTTP_NOT_FOUND);
-        }
+        $body = new ArrayCollection(json_decode($request->getContent(), true));
 
-        $body = json_decode($request->getContent(), true);
+        $category = $body->get('category_id')
+            ? $categoryRepository->find($body->get('category_id'))
+            : null;
 
         $budget = new Budget();
-        $budget->setName($body['name'] ?? null);
-        $budget->setValue($body['value'] ?? null);
-        $budget->setCategory($category);
+        $budget->setName($body->get('name'))
+            ->setValue($body->get('value'))
+            ->setCategory($category);
 
-        $errors = $validator->validate($budget);
-        if ($errors->count() > 0) {
-            foreach ($errors as $error) {
-                $err[$error->getPropertyPath()][] = $error->getMessage();
-            }
-
-            return $this->json(['errors' => $err], Response::HTTP_UNPROCESSABLE_ENTITY);
+        $violations = $validator->validate($budget);
+        if ($violations->count()) {
+            return $this->json(['errors' => createErrorPayload($violations)], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $this->budgetRepository->create($budget);
@@ -81,24 +76,19 @@ class BudgetController extends AbstractController
             return $this->json(['message' => 'Budget not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $body = json_decode($request->getContent(), true);
+        $body = new ArrayCollection(json_decode($request->getContent(), true));
 
-        $category = $categoryRepository->find($body['category_id']);
-        if (!$category) {
-            return $this->json(['message' => 'Category not found'], Response::HTTP_NOT_FOUND);
-        }
+        $category = $body->get('category_id')
+            ? $categoryRepository->find($body->get('category_id'))
+            : null;
 
-        $budget->setName($body['name'] ?? null);
-        $budget->setValue($body['value'] ?? null);
-        $budget->setCategory($category);
+        $budget->setName($body->get('name'))
+            ->setValue($body->get('value'))
+            ->setCategory($category);
 
-        $errors = $validator->validate($budget);
-        if ($errors->count() > 0) {
-            foreach ($errors as $error) {
-                $err[$error->getPropertyPath()][] = $error->getMessage();
-            }
-
-            return $this->json(['errors' => $err], Response::HTTP_UNPROCESSABLE_ENTITY);
+        $violations = $validator->validate($budget);
+        if ($violations->count() > 0) {
+            return $this->json(['errors' => createErrorPayload($violations)], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $this->budgetRepository->update($budget);

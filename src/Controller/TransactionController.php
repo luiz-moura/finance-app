@@ -6,7 +6,6 @@ use App\Entity\Transaction;
 use App\Repository\CategoryRepository;
 use App\Repository\TransactionRepository;
 use App\Services\CurrencyService;
-use Doctrine\Common\Collections\Collection;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -40,9 +39,9 @@ class TransactionController extends AbstractController
     public function store(Request $request, ValidatorInterface $validator): Response
     {
         $transaction = new Transaction();
-        $transaction->setTitle($request->get('title'));
-        $transaction->setValue($request->get('value'));
-        $transaction->setType($request->get('type'));
+        $transaction->setTitle($request->get('title'))
+            ->setValue($request->get('value'))
+            ->setType($request->get('type'));
 
         if ($request->get('categories')) {
             $categories = $this->categoryRepository->findBy(['id' => $request->get('categories')]);
@@ -82,25 +81,12 @@ class TransactionController extends AbstractController
             throw $this->createNotFoundException('Transaction not found');
         }
 
-        $transaction->setTitle($request->get('title'));
-        $transaction->setValue($request->get('value'));
-        $transaction->setType($request->get('type'));
+        $transaction->setTitle($request->get('title'))
+            ->setValue($request->get('value'))
+            ->setType($request->get('type'));
 
         if ($request->get('categories')) {
-            $transactionCategories = $transaction->getCategories()
-                ->map(fn ($cat) => $cat->getId())
-                ->toArray();
-
-            $categoriesIdsRemoved = array_diff($transactionCategories, $request->get('categories'));
-            $transaction->getCategories()
-                ->filter(fn ($cat) => in_array($cat->getId(), $categoriesIdsRemoved))
-                ->map(fn ($cat) => $transaction->removeCategory($cat));
-
-            $categoriesIdsAdded = array_diff($request->get('categories'), $transactionCategories);
-            $categories = $this->categoryRepository->findBy(['id' => $categoriesIdsAdded]);
-            array_map(fn ($cat) => $transaction->addCategory($cat), $categories);
-        } else {
-            $transaction->getCategories()->map(fn ($cat) => $transaction->removeCategory($cat));
+            $this->transactionRepository->syncCategories($transaction, $request->get('categories'));
         }
 
         $errors = $validator->validate($transaction);

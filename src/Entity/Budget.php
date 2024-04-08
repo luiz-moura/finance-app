@@ -18,28 +18,29 @@ class Budget
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     #[Groups('budget', 'category')]
-    private $id;
+    private ?int $id;
 
     #[Assert\NotBlank]
+    #[Assert\Length(min: 3, max: 255)]
     #[ORM\Column(type: 'string', length: 255, unique: true)]
     #[Groups('budget', 'category')]
-    private $name;
+    private ?string $name;
 
     #[Assert\NotBlank]
     #[ORM\Column(type: 'decimal', precision: 8, scale: 2)]
     #[Groups('budget', 'category')]
-    private $value;
+    private ?float $value;
 
     #[ORM\Column(type: 'datetime')]
-    private $createdAt;
+    private DateTime $createdAt;
 
+    #[Assert\NotBlank]
     #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: 'budgets')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups('budget', 'category')]
-    private $category;
+    private ?Category $category;
 
-    #[ORM\PrePersist]
-    public function created_at(): void
+    public function __construct()
     {
         $this->createdAt = new DateTime();
     }
@@ -54,7 +55,7 @@ class Budget
         return $this->name;
     }
 
-    public function setName($name): self
+    public function setName(?string $name): self
     {
         $this->name = $name;
 
@@ -63,10 +64,12 @@ class Budget
 
     public function getValue(): ?string
     {
-        return 'R$ ' . number_format($this->value, 2, ',', '.');
+        return $this->value
+            ? sprintf('R$ %s', number_format($this->value, 2, ',', '.'))
+            : null;
     }
 
-    public function setValue($value): self
+    public function setValue(?float $value): self
     {
         $this->value = $value;
 
@@ -75,7 +78,9 @@ class Budget
 
     public function getCreatedAt(): ?string
     {
-        return date_format($this->createdAt, 'Y-m-d H:i:s');
+        return $this->createdAt
+            ? date_format($this->createdAt, 'Y-m-d H:i:s')
+            : null;
     }
 
     public function getCategory(): ?Category
@@ -83,22 +88,10 @@ class Budget
         return $this->category;
     }
 
-    public function setCategory(?Category $Category): self
+    public function setCategory(?Category $category): self
     {
-        $this->category = $Category;
+        $this->category = $category;
 
         return $this;
-    }
-
-    public function toArray(): array
-    {
-        return [
-            'id'            => $this->getId(),
-            'name'          => $this->getName(),
-            'value'         => $this->getValue(),
-            'category'      => $this->getCategory()->toArray(),
-            'category_id'   => $this->getCategory()->getId(),
-            'created_at'    => $this->getCreatedAt(),
-        ];
     }
 }

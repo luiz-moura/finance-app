@@ -38,15 +38,14 @@ class BudgetController extends AbstractController
     #[Route('/budget', name: 'app_budget.store', methods: ['POST'])]
     public function store(Request $request, ValidatorInterface $validator): Response
     {
-        $category = $this->categoryRepository->find($request->get('category_id'));
-        if (!$category) {
-            throw $this->createNotFoundException('Category not found');
-        }
+        $category = $request->get('category_id')
+            ? $this->categoryRepository->find($request->get('category_id'))
+            : null;
 
         $budget = new Budget();
-        $budget->setName($request->get('name'));
-        $budget->setValue($request->get('value'));
-        $budget->setCategory($category);
+        $budget->setName($request->get('name'))
+            ->setValue($request->get('value'))
+            ->setCategory($category);
 
         $errors = $validator->validate($budget);
         if ($errors->count() > 0) {
@@ -81,14 +80,13 @@ class BudgetController extends AbstractController
             throw $this->createNotFoundException('Budget not found');
         }
 
-        $category = $this->categoryRepository->find($request->get('category_id'));
-        if (!$category) {
-            throw $this->createNotFoundException('Category not found');
-        }
+        $category = $request->get('category_id')
+            ? $this->categoryRepository->find($request->get('category_id'))
+            : null;
 
-        $budget->setName($request->get('name'));
-        $budget->setValue($request->get('value'));
-        $budget->setCategory($category);
+        $budget->setName($request->get('name'))
+            ->setValue($request->get('value'))
+            ->setCategory($category);
 
         $errors = $validator->validate($budget);
         if ($errors->count() > 0) {

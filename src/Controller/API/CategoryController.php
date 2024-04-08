@@ -4,6 +4,7 @@ namespace App\Controller\API;
 
 use App\Entity\Category;
 use App\Repository\CategoryRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -36,19 +37,15 @@ class CategoryController extends AbstractController
     #[Route('api/category', name: 'app_category_api.store', methods: ['POST'])]
     public function store(Request $request, ValidatorInterface $validator): Response
     {
-        $body = json_decode($request->getContent());
+        $body = new ArrayCollection(json_decode($request->getContent(), true));
 
         $category = new Category();
-        $category->setName($body['name'] ?? null);
-        $category->setBackground($body['background'] ?? null);
+        $category->setName($body->get('name'))
+            ->setBackground($body->get('background'));
 
-        $errors = $validator->validate($category);
-        if ($errors->count() > 0) {
-            foreach ($errors as $error) {
-                $err[$error->getPropertyPath()][] = $error->getMessage();
-            }
-
-            return $this->json(['errors' => $err], Response::HTTP_UNPROCESSABLE_ENTITY);
+        $violations = $validator->validate($category);
+        if ($violations->count() > 0) {
+            return $this->json(['errors' => createErrorPayload($violations)], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $this->categoryRepository->create($category);
@@ -59,23 +56,19 @@ class CategoryController extends AbstractController
     #[Route('api/category/{id}', name: 'app_category_api.update', methods: ['PUT'])]
     public function update(int $id, Request $request, ValidatorInterface $validator): Response
     {
-        $body = json_decode($request->getContent(), true);
-
         $category = $this->categoryRepository->find($id);
         if (!$category) {
             return $this->json(['message' => 'Category not found.'], Response::HTTP_NOT_FOUND);
         }
 
-        $category->setName($body['name']);
-        $category->setBackground($body['background']);
+        $body = new ArrayCollection(json_decode($request->getContent(), true));
 
-        $errors = $validator->validate($category);
-        if ($errors->count() > 0) {
-            foreach ($errors as $error) {
-                $err[$error->getPropertyPath()][] = $error->getMessage();
-            }
+        $category->setName($body->get('name'))
+            ->setBackground($body->get('background'));
 
-            return $this->json(['errors' => $err], Response::HTTP_UNPROCESSABLE_ENTITY);
+        $violations = $validator->validate($category);
+        if ($violations->count() > 0) {
+            return $this->json(['errors' => createErrorPayload($violations)], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $this->categoryRepository->update($category);

@@ -12,7 +12,7 @@
 			</div>
 			<div class="stat-title">{{ coin.code }}</div>
 			<div class="stat-value text-primary">{{ coin.high }}</div>
-			<div class="stat-desc">{{ coin.pctChange }}</div>
+			<div class="stat-desc {{ coin.pctChange >= 0 ? 'text-emerald-500' : 'text-red-500' }}">{{ coin.pctChange }}</div>
 		</div>
 	{% endfor %}
 </div>

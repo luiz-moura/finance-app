@@ -17,13 +17,13 @@ class FileService
 
     public function store(UploadedFile $file): ?string
     {
-        $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-        $safeFilename = $this->slugger->slug($originalFilename);
-        $fileName = $safeFilename.'-'.uniqid().'.'.$file->guessExtension();
+        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $slug = $this->slugger->slug($originalName);
+        $path = sprintf('%s-%i.%e', $slug, uniqid(), $file->guessExtension());
 
-        $file->move($this->targetDirectory, $fileName);
+        $file->move($this->targetDirectory, $path);
 
-        return $fileName;
+        return $path;
     }
 
     public function remove(string $path): void

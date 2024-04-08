@@ -20,38 +20,33 @@ class Category
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     #[Groups(['category', 'transaction', 'budget'])]
-    private $id;
+    private ?int $id;
 
     #[Assert\NotBlank]
     #[Assert\Length(min: 3, max: 255)]
     #[ORM\Column(type: 'string', length: 255, unique: true)]
     #[Groups(['category', 'transaction', 'budget'])]
-    private $name;
+    private ?string $name;
 
     #[Assert\NotBlank]
     #[Assert\CssColor]
     #[ORM\Column(type: 'string', length: 10)]
     #[Groups('category')]
-    private $background;
+    private ?string $background;
 
     #[ORM\Column(type: 'datetime')]
-    private $createdAt;
+    private DateTime $createdAt;
 
     #[ORM\ManyToMany(targetEntity: Transaction::class, mappedBy: 'categories')]
     private Collection $transactions;
 
-    #[ORM\OneToMany(mappedBy: 'category', targetEntity: Budget::class, orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Budget::class, mappedBy: 'category', orphanRemoval: true)]
     private Collection $budgets;
 
     public function __construct()
     {
         $this->transactions = new ArrayCollection();
         $this->budgets = new ArrayCollection();
-    }
-
-    #[ORM\PrePersist]
-    public function created_at(): void
-    {
         $this->createdAt = new DateTime();
     }
 
@@ -65,7 +60,7 @@ class Category
         return $this->name;
     }
 
-    public function setName($name): self
+    public function setName(?string $name): self
     {
         $this->name = $name;
 
@@ -77,7 +72,7 @@ class Category
         return $this->background;
     }
 
-    public function setBackground($background): self
+    public function setBackground(?string $background): self
     {
         $this->background = $background;
 
@@ -86,7 +81,9 @@ class Category
 
     public function getCreatedAt(): ?string
     {
-        return date_format($this->createdAt, 'Y-m-d H:i:s');
+        return $this->createdAt
+            ? date_format($this->createdAt, 'Y-m-d H:i:s')
+            : null;
     }
 
     public function getTransactions(): Collection
@@ -94,50 +91,8 @@ class Category
         return $this->transactions;
     }
 
-    public function addTransaction(Transaction $transaction): self
-    {
-        $this->transactions->add($transaction);
-        $transaction->addCategory($this);
-
-        return $this;
-    }
-
-    public function removeTransaction(Transaction $transaction): self
-    {
-        $this->transactions->removeElement($transaction);
-        $transaction->removeCategory($this);
-
-        return $this;
-    }
-
     public function getBudgets(): Collection
     {
         return $this->budgets;
-    }
-
-    public function addBudget(Budget $budget): self
-    {
-        $this->budgets->add($budget);
-        $budget->setCategory($this);
-
-        return $this;
-    }
-
-    public function removeBudget(Budget $budget): self
-    {
-        $this->budgets->removeElement($budget);
-        $budget->setCategory(null);
-
-        return $this;
-    }
-
-    public function toArray(): array
-    {
-        return [
-            'id'            => $this->getId(),
-            'name'          => $this->getName(),
-            'background'    => $this->getBackground(),
-            'created_at'    => $this->getCreatedAt(),
-        ];
     }
 }

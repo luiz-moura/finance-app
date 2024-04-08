@@ -32,8 +32,8 @@ class CategoryController extends AbstractController
     public function store(Request $request, ValidatorInterface $validator): Response
     {
         $category = new Category();
-        $category->setName($request->get('name'));
-        $category->setBackground($request->get('background'));
+        $category->setName($request->get('name'))
+            ->setBackground($request->get('background'));
 
         $errors = $validator->validate($category);
         if ($errors->count() > 0) {
@@ -66,8 +66,8 @@ class CategoryController extends AbstractController
             throw $this->createNotFoundException('Category not found');
         }
 
-        $category->setName($request->get('name'));
-        $category->setBackground($request->get('background'));
+        $category->setName($request->get('name'))
+            ->setBackground($request->get('background'));
 
         $errors = $validator->validate($category);
         if ($errors->count() > 0) {
